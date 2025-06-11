@@ -1,3 +1,5 @@
+const lumaImg = new Image();
+lumaImg.src = "assets/luma.png"; // Replace with correct path to Luma's sprite
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -90,13 +92,12 @@ function update() {
     if (!checkCollision(luma.x, nextY)) {
         luma.y = nextY;
     }
-}
+} 
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawMaze(); // Draw the maze first
-    ctx.fillStyle = luma.color;
-    ctx.fillRect(luma.x, luma.y, luma.width, luma.height);
+    ctx.drawImage(lumaImg, luma.x, luma.y, luma.width, luma.height);
 }
 
 function gameLoop() {
