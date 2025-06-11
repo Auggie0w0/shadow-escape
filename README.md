@@ -1,43 +1,78 @@
-# Shadow Escape
+# 🌑 Shadow Escape
 
-Shadow Escape is a browser-based maze survival game created using HTML, CSS, and JavaScript.  
-You play as **Luma**, a shadow explorer trapped in a cursed dimension. Your goal is to escape each level of the maze while avoiding patrolling shadow guards and reaching the exit before time runs out.
+**Shadow Escape** is a web-based, story-driven maze adventure game built using **HTML**, **CSS**, and **JavaScript**. You play as **Luma**, a brave explorer trapped in a shadowy dimension. To escape, you must make the right choices, avoid shadow guards, and survive with your light intact.
 
-## Features
+---
 
-- Arrow key movement
-- Basic maze structure with collision logic
-- Patrol guards (NPCs)
-- Increasing difficulty with each level
-- Timer-based challenge
+## 🎮 Game Overview
 
-## Getting Started
+- **Genre:** Puzzle / Adventure / Interactive Story
+- **Objective:** Choose the correct path on each level and avoid losing all light bars.
+- **Levels:** 3 stages with unique maze paths and story-based decisions.
+- **Win Condition:** Reach the final portal with at least 1 light bar.
+- **Lose Condition:** Lose all 5 light bars — your light fades and the game resets.
 
-To run the game locally:
+---
 
-1. Clone this repository or download the ZIP file.
-2. Open `index.html` in your browser.
-3. Play the game using your keyboard arrow keys!
+## 🧩 Game Features
 
-To publish your game using **GitHub Pages**:
+- One screen at a time (story mode format)
+- Arrow-key movement and decision-based gameplay
+- Visual light bar health system (5 bars)
+- Dynamic enemies: 3 Shadow Guards (-1 light) and 1 Maze Keeper (-2 lights)
+- Responsive canvas-based design for browser play
 
-1. Create a new repository on GitHub.
-2. Upload all the files (`index.html`, `style.css`, `game.js`, etc.).
-3. Go to the repository settings → Pages → Set source to `main` branch and root folder.
-4. Visit the URL provided to play your game online!
+---
 
-## Controls
+## 🚀 Getting Started
 
-- **Arrow Up**: Move up
-- **Arrow Down**: Move down
-- **Arrow Left**: Move left
-- **Arrow Right**: Move right
+### 🔗 Play Online (GitHub Pages)
+1. Visit: `https://YOUR-USERNAME.github.io/shadow-escape/`  
+   *(Replace with your actual GitHub username after deployment)*
 
-## Credits
+### 💻 Run Locally
+1. Download or clone this repo
+2. Open `index.html` in any modern browser
+3. Play the game directly from your machine
 
-Game by Yu Lam  
-Sprites and assets will be hand-drawn or sourced from free libraries like [OpenGameArt.org](https://opengameart.org/) or [Itch.io Assets](https://itch.io/game-assets).
+---
 
-## License
+## 🕹️ Controls
 
-This project is for educational purposes.
+| Action        | Key         |
+|---------------|-------------|
+| Move Up       | Arrow Up    |
+| Move Down     | Arrow Down  |
+| Move Left     | Arrow Left  |
+| Move Right    | Arrow Right |
+| Select Choice | Mouse Click |
+
+---
+
+## 📁 File Structure
+
+```
+shadow-escape/
+├── index.html        # Game structure
+├── style.css         # Visual styling
+├── game.js           # Game logic and screen flow
+├── assets/           # Sprites, Luma image, etc.
+└── README.md         # This file
+```
+
+---
+
+## ✨ Credits
+
+Game by **Yu Lam**  
+Assets hand-drawn or sourced from:
+- [OpenGameArt.org](https://opengameart.org/)
+- [Itch.io Game Assets](https://itch.io/game-assets)
+
+---
+
+## 📜 License
+
+This project is for educational and non-commercial use. All rights reserved by the creator.
+
+---
