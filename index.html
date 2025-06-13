@@ -6,6 +6,16 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="narration" class="narration-container">
+        <div class="narration-text">
+            <p class="current-text">Where am I?</p>
+            <p class="next-text">I touched that shiny star...</p>
+            <p class="next-text">The next thing I know I ended up here in pitch black.</p>
+            <p class="next-text">I have to look for my parents and go back to my dimension!</p>
+        </div>
+        <p class="skip-text">Press Enter to continue...</p>
+    </div>
+
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     
     <audio id="bg-music" src="assets/audio/bg-music.mp3" loop></audio>
@@ -13,6 +23,7 @@
     <audio id="wrong-sound" src="assets/audio/wrong.wav"></audio>
     <audio id="win-sound" src="assets/audio/win.wav"></audio>
     <audio id="game-over-sound" src="assets/audio/game-over.wav"></audio>
+    <audio id="footstep-sound" src="assets/audio/outdoor-footstep.mp3"></audio>
 
     <script src="game.js"></script>
 </body>

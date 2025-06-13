@@ -1,22 +1,57 @@
 // Game states
 const GAME_STATES = {
     INTRO_NARRATION: 'intro_narration',
+    TITLE_SEQUENCE: 'title_sequence',
     TITLE_SCREEN: 'title_screen',
     PLAYING: 'playing',
     GAME_OVER: 'game_over',
     VICTORY: 'victory'
 };
 
+// Level configurations
+const LEVEL_CONFIGS = {
+    0: { // Level 1
+        correctPaths: ['d', 'w', 'a'], // right, straight, left
+        shadowGuardPath: 'w', // shadow guard appears on straight path
+        attempts: 3
+    },
+    1: { // Level 2
+        correctPaths: ['w', 'a', 'd'], // straight, left, right
+        shadowGuardPath: 'd', // shadow guard appears on right path
+        attempts: 3
+    },
+    2: { // Level 3
+        correctPaths: ['a', 'w'], // left, straight
+        shadowGuardPath: 'a', // shadow guard appears on left path
+        attempts: 3
+    }
+};
+
 let currentState = GAME_STATES.INTRO_NARRATION;
-let lightBars = 3; // Changed from 5 to 3
+let lightBars = 3;
 let currentLevel = 0;
+let currentAttempt = 0;
 let gameOver = false;
 let gameWon = false;
 let showShadowGuard = false;
+let isTransitioning = false;
+
+// DOM Elements
+const narrationContainer = document.getElementById('narration');
+const narrationTexts = document.querySelectorAll('.narration-text p');
+const titleSequence = document.getElementById('title-sequence');
+const titleTexts = document.querySelectorAll('.title-text');
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Audio elements
+const footstepSound = document.getElementById('footstep-sound');
+const wrongSound = document.getElementById('wrong-sound');
+const correctSound = document.getElementById('correct-sound');
 
 // Background images
 const backgrounds = {
-    start: "assets/startBG.GIF",
+    start: "assets/startBG.tiff",
     level1: "assets/1.tiff",
     level2: "assets/2.tiff",
     level3: "assets/3.tiff",
@@ -34,24 +69,6 @@ const portalFrames = [
     "assets/portal7.jpeg"
 ];
 
-// Intro narration text
-const introText = [
-    "Where am I?",
-    "I touched that shiny star...",
-    "The next thing I know I ended up here in pitch black.",
-    "I have to look for my parents and go back to my dimension!"
-];
-let currentIntroText = 0;
-
-// Questions for each level
-const questions = [
-    "Level 1: Do you go LEFT, RIGHT, or FORWARD?",
-    "Level 2: Shadow guards are near. Choose LEFT, RIGHT, or FORWARD.",
-    "Level 3: Final path. Will you go LEFT, RIGHT, or FORWARD?"
-];
-
-const correctPaths = ["right", "forward", "left"];
-
 // Load images
 const bgImage = new Image();
 bgImage.src = backgrounds.start;
@@ -60,100 +77,113 @@ const portalImg = new Image();
 let currentFrame = 0;
 let frameCounter = 0;
 
-// Audio elements
-const bgMusic = document.getElementById("bg-music");
-const correctSound = document.getElementById("correct-sound");
-const wrongSound = document.getElementById("wrong-sound");
-const winSound = document.getElementById("win-sound");
-const gameOverSound = document.getElementById("game-over-sound");
+// Shadow guard image
+const shadowGuardImg = new Image();
+shadowGuardImg.src = "assets/sg0.tiff";
 
-// Event listeners
-document.addEventListener("keydown", handleKeyPress);
-canvas.addEventListener("click", handleMouseClick);
+let currentNarrationIndex = 0;
 
-function handleKeyPress(e) {
-    if (currentState === GAME_STATES.INTRO_NARRATION) {
-        if (e.key.toLowerCase() === 's') {
-            currentState = GAME_STATES.TITLE_SCREEN;
-            bgImage.src = backgrounds.start;
+function advanceNarration() {
+    if (currentNarrationIndex < narrationTexts.length) {
+        narrationTexts[currentNarrationIndex].classList.remove('current-text');
+        currentNarrationIndex++;
+        
+        if (currentNarrationIndex < narrationTexts.length) {
+            narrationTexts[currentNarrationIndex].classList.add('current-text');
         } else {
-            currentIntroText = (currentIntroText + 1) % introText.length;
-            if (currentIntroText === 0) {
-                currentState = GAME_STATES.TITLE_SCREEN;
-                bgImage.src = backgrounds.start;
-            }
+            narrationContainer.classList.add('fade-out');
+            setTimeout(() => {
+                narrationContainer.style.display = 'none';
+                startTitleSequence();
+            }, 1000);
         }
-        return;
     }
+}
 
-    if (currentState === GAME_STATES.TITLE_SCREEN) {
-        currentState = GAME_STATES.PLAYING;
-        bgImage.src = backgrounds.level1;
-        bgMusic.play().catch(e => console.error("Audio autoplay failed:", e));
-        return;
+function startTitleSequence() {
+    currentState = GAME_STATES.TITLE_SEQUENCE;
+    titleSequence.style.opacity = '1';
+    titleSequence.style.pointerEvents = 'auto';
+    
+    let currentTitleIndex = 0;
+    
+    function showNextTitle() {
+        if (currentTitleIndex < titleTexts.length) {
+            titleTexts[currentTitleIndex].classList.add('visible');
+            currentTitleIndex++;
+            setTimeout(showNextTitle, 1000);
+        } else {
+            setTimeout(() => {
+                titleSequence.classList.add('fade-out');
+                setTimeout(() => {
+                    titleSequence.style.display = 'none';
+                    canvas.style.display = 'block';
+                    currentState = GAME_STATES.TITLE_SCREEN;
+                    draw();
+                }, 1000);
+            }, 2000);
+        }
     }
+    
+    showNextTitle();
+}
 
-    if (currentState !== GAME_STATES.PLAYING) return;
-
-    let direction = "";
-    if (e.key === "ArrowLeft") direction = "left";
-    if (e.key === "ArrowRight") direction = "right";
-    if (e.key === "ArrowUp") direction = "forward";
-
-    if (direction && correctPaths[currentLevel] !== direction) {
-        lightBars--;
+function handleChoice(direction) {
+    if (isTransitioning) return;
+    
+    isTransitioning = true;
+    const currentConfig = LEVEL_CONFIGS[currentLevel];
+    
+    // Play footstep sound
+    footstepSound.currentTime = 0;
+    footstepSound.play();
+    
+    // Change to start background
+    bgImage.src = backgrounds.start;
+    
+    // Check if this is the shadow guard path
+    if (direction === currentConfig.shadowGuardPath) {
+        lightBars -= 2;
         showShadowGuard = true;
         wrongSound.play();
-        setTimeout(() => showShadowGuard = false, 1000);
     }
-
-    if (lightBars <= 0) {
-        currentState = GAME_STATES.GAME_OVER;
-        bgImage.src = backgrounds.fail;
-        bgMusic.pause();
-        gameOverSound.play();
-        return;
-    }
-
-    if (direction === correctPaths[currentLevel]) {
-        correctSound.play();
-        currentLevel++;
-        if (currentLevel >= 3) {
-            currentState = GAME_STATES.VICTORY;
-            portalImg.src = portalFrames[0];
-            bgMusic.pause();
-            winSound.play();
-            return;
-        }
+    
+    // Wait for footstep sound to finish
+    footstepSound.onended = () => {
+        // Return to level background
         bgImage.src = backgrounds[`level${currentLevel + 1}`];
-    }
+        showShadowGuard = false;
+        
+        // Check if choice was correct
+        if (direction === currentConfig.correctPaths[currentAttempt]) {
+            currentAttempt++;
+            correctSound.play();
+            
+            if (currentAttempt >= currentConfig.attempts) {
+                // Level complete
+                currentLevel++;
+                currentAttempt = 0;
+                
+                if (currentLevel >= 3) {
+                    currentState = GAME_STATES.VICTORY;
+                }
+            }
+        } else {
+            wrongSound.play();
+        }
+        
+        isTransitioning = false;
+    };
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     switch (currentState) {
-        case GAME_STATES.INTRO_NARRATION:
-            // Draw black background
-            ctx.fillStyle = "black";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw intro text
-            ctx.fillStyle = "white";
-            ctx.font = "24px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(introText[currentIntroText], canvas.width/2, canvas.height/2);
-            
-            // Draw skip text
-            ctx.font = "16px Arial";
-            ctx.textAlign = "right";
-            ctx.fillText("Press 'S' to skip", canvas.width - 20, canvas.height - 20);
-            break;
-
         case GAME_STATES.TITLE_SCREEN:
             ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "white";
-            ctx.font = "24px Arial";
+            ctx.font = "24px 'Press Start 2P'";
             ctx.textAlign = "center";
             ctx.fillText("Press any key to start", canvas.width/2, canvas.height - 50);
             break;
@@ -161,12 +191,23 @@ function draw() {
         case GAME_STATES.PLAYING:
             ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
             drawHUD();
+            
+            // Draw choice text
+            ctx.fillStyle = "white";
+            ctx.font = "20px 'Press Start 2P'";
+            ctx.textAlign = "center";
+            ctx.fillText("An intersection! I think I will go...", canvas.width/2, canvas.height/2 - 40);
+            ctx.fillText("Left (A) / Straight (W) / Right (D)", canvas.width/2, canvas.height/2 + 10);
+            
+            if (showShadowGuard) {
+                ctx.drawImage(shadowGuardImg, canvas.width/2 - 100, canvas.height/2 - 100, 200, 200);
+            }
             break;
 
         case GAME_STATES.GAME_OVER:
             ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "white";
-            ctx.font = "40px Arial";
+            ctx.font = "40px 'Press Start 2P'";
             ctx.textAlign = "center";
             ctx.fillText("Game Over", canvas.width/2, canvas.height/2);
             break;
@@ -184,7 +225,9 @@ function draw() {
             break;
     }
 
-    requestAnimationFrame(draw);
+    if (currentState !== GAME_STATES.INTRO_NARRATION) {
+        requestAnimationFrame(draw);
+    }
 }
 
 function drawHUD() {
@@ -207,24 +250,34 @@ function drawHUD() {
         ctx.closePath();
         ctx.fill();
     }
-
-    // Draw question box at bottom
-    const boxHeight = 70;
-    const boxY = canvas.height - boxHeight - 20;
-    const boxX = 20;
-    const boxWidth = canvas.width - 40;
-
-    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-    ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
-
-    ctx.fillStyle = "white";
-    ctx.font = "20px Arial";
-    ctx.textAlign = "left";
-    ctx.fillText(questions[currentLevel], boxX + 20, boxY + 40);
 }
+
+// Event listeners
+document.addEventListener("keydown", (e) => {
+    if (currentState === GAME_STATES.INTRO_NARRATION) {
+        if (e.key === 'Enter' || e.key === 'Return') {
+            advanceNarration();
+        }
+        return;
+    }
+
+    if (currentState === GAME_STATES.TITLE_SCREEN) {
+        currentState = GAME_STATES.PLAYING;
+        bgImage.src = backgrounds.level1;
+        return;
+    }
+
+    if (currentState !== GAME_STATES.PLAYING) return;
+
+    let direction = null;
+    if (e.key.toLowerCase() === 'a') direction = 'a';
+    if (e.key.toLowerCase() === 'w') direction = 'w';
+    if (e.key.toLowerCase() === 'd') direction = 'd';
+
+    if (direction) {
+        handleChoice(direction);
+    }
+});
 
 // Start the game
 draw();

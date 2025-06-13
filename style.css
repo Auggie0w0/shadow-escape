@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 body {
     margin: 0;
     background-color: #111;
@@ -5,7 +7,111 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    font-family: 'Press Start 2P', cursive;
+    color: #fff;
 }
+
 canvas {
     border: 2px solid #fff;
+    display: none; /* Initially hidden */
+}
+
+.narration-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    z-index: 1000;
+}
+
+.narration-text {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.narration-text p {
+    font-size: 20px;
+    margin: 20px 0;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.narration-text p.current-text {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.skip-text {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    font-size: 16px;
+    opacity: 0.7;
+}
+
+/* Fade out animation for narration container */
+.narration-container.fade-out {
+    opacity: 0;
+    transition: opacity 1s ease;
+    pointer-events: none;
+}
+
+/* Title Sequence Styles */
+.title-sequence {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.title-text {
+    font-size: 48px;
+    margin: 20px 0;
+    opacity: 0;
+    transform: translateY(20px);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    letter-spacing: 4px;
+}
+
+.title-text.visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 1s ease, transform 1s ease;
+}
+
+.title1 { color: #ff6b6b; }
+.title2 { color: #4ecdc4; }
+.title3 { color: #ffe66d; }
+.title4 { color: #95e1d3; }
+
+@keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+}
+
+.title-text:hover {
+    animation: glitch 0.3s infinite;
 }
