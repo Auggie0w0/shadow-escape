@@ -78,3 +78,15 @@ Assets hand-drawn or sourced from:
 This project is for educational and non-commercial use. All rights reserved by the creator.
 
 ---
+
+## Audio Credits
+
+### Sound Effects
+- Outdoor Footsteps: "Outdoor footsteps" by Caitlin_100 (Freesound) via Pixabay
+  - Source: https://pixabay.com/sound-effects/outdoor-footsteps-102461/
+  - License: Pixabay Content License (Free for commercial and noncommercial use)
+
+## License
+This game is licensed under the MIT License. See the LICENSE file for details.
+
+---

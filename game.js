@@ -1,7 +1,6 @@
 // Game states
 const GAME_STATES = {
     INTRO_NARRATION: 'intro_narration',
-    TITLE_SEQUENCE: 'title_sequence',
     TITLE_SCREEN: 'title_screen',
     PLAYING: 'playing',
     GAME_OVER: 'game_over',
@@ -39,8 +38,6 @@ let isTransitioning = false;
 // DOM Elements
 const narrationContainer = document.getElementById('narration');
 const narrationTexts = document.querySelectorAll('.narration-text p');
-const titleSequence = document.getElementById('title-sequence');
-const titleTexts = document.querySelectorAll('.title-text');
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -94,38 +91,13 @@ function advanceNarration() {
             narrationContainer.classList.add('fade-out');
             setTimeout(() => {
                 narrationContainer.style.display = 'none';
-                startTitleSequence();
+                canvas.style.display = 'block';
+                currentState = GAME_STATES.TITLE_SCREEN;
+                bgImage.src = backgrounds.start;
+                draw();
             }, 1000);
         }
     }
-}
-
-function startTitleSequence() {
-    currentState = GAME_STATES.TITLE_SEQUENCE;
-    titleSequence.style.opacity = '1';
-    titleSequence.style.pointerEvents = 'auto';
-    
-    let currentTitleIndex = 0;
-    
-    function showNextTitle() {
-        if (currentTitleIndex < titleTexts.length) {
-            titleTexts[currentTitleIndex].classList.add('visible');
-            currentTitleIndex++;
-            setTimeout(showNextTitle, 1000);
-        } else {
-            setTimeout(() => {
-                titleSequence.classList.add('fade-out');
-                setTimeout(() => {
-                    titleSequence.style.display = 'none';
-                    canvas.style.display = 'block';
-                    currentState = GAME_STATES.TITLE_SCREEN;
-                    draw();
-                }, 1000);
-            }, 2000);
-        }
-    }
-    
-    showNextTitle();
 }
 
 function handleChoice(direction) {
@@ -177,7 +149,9 @@ function handleChoice(direction) {
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Clear with black background
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     switch (currentState) {
         case GAME_STATES.TITLE_SCREEN:
