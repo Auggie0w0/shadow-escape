@@ -188,14 +188,14 @@ function runTitleSequence() {
     // Initial image
     updateTitleImage();
     
-    // Set up interval for title slides
+    // Set up interval for title slides (1 second per frame)
     const titleInterval = setInterval(() => {
         if (currentTitleIndex < titleSlides.length) {
             updateTitleImage();
         } else {
             clearInterval(titleInterval);
         }
-    }, 2000);
+    }, 1000);
     
     // Handle click/enter to start
     const startGame = () => {
@@ -361,18 +361,28 @@ function drawHUD() {
     }
 }
 
+function handleGameOver() {
+    currentState = GAME_STATES.GAME_OVER;
+    bgImage.src = assetPaths.fail;
+    draw();
+    
+    // Add one-time event listener for retry
+    const handleRetry = (e) => {
+        if (e.key === 'Enter') {
+            document.removeEventListener('keydown', handleRetry);
+            resetGame();
+        }
+    };
+    
+    document.addEventListener('keydown', handleRetry);
+}
+
 function handleChoice(direction) {
     console.debug('handleChoice', {direction, currentLevel, currentAttempt, lightBars});
     if (isInputLocked) return;
 
     const currentConfig = LEVEL_CONFIGS[currentLevel];
     const directionMap = { a: 'LEFT', w: 'FORWARD', d: 'RIGHT' };
-
-    // Play footstep sound if it exists
-    if (footstepSound) {
-        footstepSound.currentTime = 0;
-        footstepSound.play().catch(e => console.debug('Audio play failed:', e));
-    }
 
     // Lock input until footstep sound ends or timeout
     isInputLocked = true;
@@ -389,9 +399,7 @@ function handleChoice(direction) {
             
             if (lightBars <= 0) {
                 // Game over
-                currentState = GAME_STATES.GAME_OVER;
-                bgImage.src = assetPaths.fail;
-                draw();
+                handleGameOver();
                 return; // Prevent further progression
             }
             
@@ -423,11 +431,6 @@ function handleChoice(direction) {
 
     // Set a timeout in case audio fails to play
     setTimeout(unlockInput, 500);
-    
-    // Also try to use the audio ended event
-    if (footstepSound) {
-        footstepSound.onended = unlockInput;
-    }
 }
 
 function startVictorySequence() {
