@@ -97,9 +97,9 @@ const assetPaths = {
         "assets/start screen/title5.TIF"
     ],
     levels: [
-        "assets/level 1/1.TIF",
-        "assets/level 2/2.TIF",
-        "assets/level 3/3.TIF"
+        "assets/level 1/1bg.TIF",
+        "assets/level 2/2bg.TIF",
+        "assets/level 3/3bg.TIF"
     ],
     guards: [
         "assets/shadow guards/SG0.TIF",
