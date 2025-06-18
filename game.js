@@ -57,12 +57,14 @@ const imageCache = {};
 function loadImage(path) {
     return new Promise((resolve, reject) => {
         if (imageCache[path]) {
+            console.debug('Image cache hit:', path);
             resolve(imageCache[path]);
             return;
         }
 
         const img = new Image();
         img.onload = () => {
+            console.debug('Image loaded:', path);
             imageCache[path] = img;
             resolve(img);
         };
@@ -92,12 +94,12 @@ const assetPaths = {
         "assets/start screen/title2.TIF",
         "assets/start screen/title3.TIF",
         "assets/start screen/title4.TIF",
-        "assets/start screen/title5.tiff"
+        "assets/start screen/title5.TIF"
     ],
     levels: [
-        "assets/level 1/1.tiff",
-        "assets/level 2/2.tiff",
-        "assets/level 3/3.tiff"
+        "assets/level 1/1.TIF",
+        "assets/level 2/2.TIF",
+        "assets/level 3/3.TIF"
     ],
     guards: [
         "assets/shadow guards/SG0.TIF",
@@ -115,11 +117,11 @@ const assetPaths = {
         "assets/portal/portal7.TIF"
     ],
     expressions: {
-        happy: "assets/emotions/happy.tiff",
-        worry: "assets/emotions/worry.tiff",
-        unhappy: "assets/emotions/unhappy.tiff"
+        happy: "assets/emotions/happy.TIF",
+        worry: "assets/emotions/worry.TIF",
+        unhappy: "assets/emotions/unhappy.TIF"
     },
-    fail: "assets/failbg.tiff"
+    fail: "assets/failbg.TIF"
 };
 
 // Preload images
@@ -176,6 +178,8 @@ function resetGame() {
 }
 
 function showGuard(level) {
+    debugger;
+    console.debug('showGuard called', {level, guardPath: assetPaths.guards[level]});
     showShadowGuard = true;
     shadowGuardImg.src = assetPaths.guards[level];
     isInputLocked = true;
@@ -183,6 +187,8 @@ function showGuard(level) {
 }
 
 function handleChoice(direction) {
+    debugger;
+    console.debug('handleChoice', {direction, currentLevel, currentAttempt, lightBars});
     if (isInputLocked) return;
 
     const currentConfig = LEVEL_CONFIGS[currentLevel];
@@ -265,6 +271,7 @@ function startVictorySequence() {
 }
 
 function drawScene() {
+    console.debug('drawScene called', {bgImage, complete: bgImage.complete, width: bgImage.naturalWidth});
     if (bgImage && bgImage.complete && bgImage.naturalWidth > 0) {
         ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
     } else {
@@ -273,6 +280,7 @@ function drawScene() {
         ctx.fillStyle = '#fff';
         ctx.font = '20px sans-serif';
         ctx.fillText('Loading...', canvas.width / 2 - 40, canvas.height / 2);
+        debugger;
     }
 }
 
