@@ -283,65 +283,6 @@ function drawHUD() {
     }
 }
 
-function drawDialogueBox() {
-    // Dialogue box dimensions and styling
-    const boxWidth = canvas.width * 0.8;
-    const boxHeight = 120;
-    const boxX = (canvas.width - boxWidth) / 2;
-    const boxY = canvas.height - boxHeight - 20;
-    const cornerRadius = 10;
-
-    // Draw rounded rectangle for the dialogue box
-    ctx.fillStyle = "rgba(255, 255, 255, 0.8)"; // Semi-transparent white
-    ctx.beginPath();
-    ctx.moveTo(boxX + cornerRadius, boxY);
-    ctx.lineTo(boxX + boxWidth - cornerRadius, boxY);
-    ctx.quadraticCurveTo(boxX + boxWidth, boxY, boxX + boxWidth, boxY + cornerRadius);
-    ctx.lineTo(boxX + boxWidth, boxY + boxHeight - cornerRadius);
-    ctx.quadraticCurveTo(boxX + boxWidth, boxY + boxHeight, boxX + boxWidth - cornerRadius, boxY + boxHeight);
-    ctx.lineTo(boxX + cornerRadius, boxY + boxHeight);
-    ctx.quadraticCurveTo(boxX, boxY + boxHeight, boxX, boxY + boxHeight - cornerRadius);
-    ctx.lineTo(boxX, boxY + cornerRadius);
-    ctx.quadraticCurveTo(boxX, boxY, boxX + cornerRadius, boxY);
-    ctx.closePath();
-    ctx.fill();
-
-    // Text styling
-    ctx.fillStyle = "black";
-    ctx.font = "16px 'Press Start 2P'";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "top";
-
-    // Text wrapping function
-    function wrapText(text, x, y, maxWidth, lineHeight) {
-        let words = text.split(' ');
-        let line = '';
-
-        for (let n = 0; n < words.length; n++) {
-            let testLine = line + words[n] + ' ';
-            let metrics = ctx.measureText(testLine);
-            let testWidth = metrics.width;
-
-            if (testWidth > maxWidth && n > 0) {
-                ctx.fillText(line, x, y);
-                line = words[n] + ' ';
-                y += lineHeight;
-            } else {
-                line = testLine;
-            }
-        }
-        ctx.fillText(line, x, y);
-    }
-
-    // Dialogue text position and wrapping
-    const textX = boxX + 20;
-    const textY = boxY + 20;
-    const maxWidth = boxWidth - 40;
-    const lineHeight = 24;
-
-    wrapText(LEVEL_CONFIGS[currentLevel].dialogue, textX, textY, maxWidth, lineHeight);
-}
-
 function draw() {
     // Clear with black background
     ctx.fillStyle = "black";
@@ -363,7 +304,6 @@ function draw() {
         case GAME_STATES.PLAYING:
             drawScene();
             drawHUD();
-            drawDialogueBox();
 
             if (showShadowGuard) {
                 ctx.drawImage(shadowGuardImg, canvas.width / 2 - 100, canvas.height / 2 - 100, 200, 200);
