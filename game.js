@@ -238,9 +238,17 @@ function resetGame() {
 }
 
 function showGuard(level) {
-    console.debug('showGuard called', {level, guardPath: assetPaths.guards[level]});
+    console.debug('showGuard called', { level });
+
+    // Special: use SG0 only once if dropping 2 lightBars
+    if (currentLevel === 2 && lightBars <= 3 && !imageCache['SG0_shown']) {
+        shadowGuardImg.src = assetPaths.guards[0]; // SG0
+        imageCache['SG0_shown'] = true; // prevent repeat
+    } else {
+        shadowGuardImg.src = `assets/shadow guards/${LEVEL_CONFIGS[level].guardImage}`;
+    }
+
     showShadowGuard = true;
-    shadowGuardImg.src = `assets/shadow guards/${LEVEL_CONFIGS[level].guardImage}`;
     isInputLocked = true;
     draw();
 }
@@ -484,6 +492,12 @@ function draw() {
                 const guardImg = imageCache[`assets/shadow guards/${LEVEL_CONFIGS[currentLevel].guardImage}`];
                 if (guardImg) {
                     ctx.drawImage(guardImg, canvas.width / 2 - 100, canvas.height / 2 - 100, 200, 200);
+                    
+                    // Show input freeze message
+                    ctx.fillStyle = "white";
+                    ctx.font = "16px 'Press Start 2P'";
+                    ctx.textAlign = "center";
+                    ctx.fillText("Press ENTER to continue...", canvas.width/2, canvas.height - 50);
                 }
             }
             
@@ -495,6 +509,11 @@ function draw() {
             if (bgImage && bgImage.complete) {
                 ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
             }
+            // Show game over message
+            ctx.fillStyle = "white";
+            ctx.font = "24px 'Press Start 2P'";
+            ctx.textAlign = "center";
+            ctx.fillText("Game Over. Press Enter to play again.", canvas.width/2, canvas.height/2);
             break;
 
         case GAME_STATES.VICTORY:
@@ -531,7 +550,8 @@ document.addEventListener("keydown", (e) => {
                 isInputLocked = false;
                 showShadowGuard = false;
                 bgImage.src = assetPaths.levels[currentLevel];
-                draw();
+                draw(); // redraw scene with guard removed
+                return;
             }
             return;
         }
