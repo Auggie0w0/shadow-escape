@@ -85,6 +85,9 @@ This project is for educational and non-commercial use. All rights reserved by t
   - Source: https://pixabay.com/sound-effects/outdoor-footsteps-102461/
   - License: Pixabay Content License (Free for commercial and noncommercial use)
 
+### Music
+- Background Music: Music by [DELOSound](https://pixabay.com/users/delosound-46524562/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=302987) from [Pixabay](https://pixabay.com/music//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=302987)
+
 ## License
 This game is licensed under the MIT License. See the LICENSE file for details.
 
