@@ -2,6 +2,7 @@
 const GAME_STATES = {
     INTRO_NARRATION: 'intro_narration',
     TITLE_SCREEN: 'title_screen',
+    LORE_SLIDES: 'lore_slides',
     PLAYING: 'playing',
     GAME_OVER: 'game_over',
     VICTORY: 'victory'
@@ -13,20 +14,33 @@ const LEVEL_CONFIGS = {
         correctPaths: ['d', 'w', 'a'], // right, straight, left
         shadowGuardPath: 'w', // shadow guard appears on straight path
         attempts: 3,
-        dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?"
+        dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?",
+        guardImage: 'SG1.TIF'
     },
     1: { // Level 2
         correctPaths: ['w', 'a', 'd'], // straight, left, right
         shadowGuardPath: 'd', // shadow guard appears on right path
         attempts: 3,
-        dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?"
+        dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?",
+        guardImage: 'SG2.TIF'
     },
     2: { // Level 3
         correctPaths: ['a', 'w'], // left, straight
         shadowGuardPath: 'a', // shadow guard appears on left path
         attempts: 3,
-        dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?"
+        dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?",
+        guardImage: 'SG3.TIF'
     }
+};
+
+// Expression mapping based on light bars
+const EXPRESSION_MAPPING = {
+    5: 'happy',
+    4: 'worry',
+    3: 'worry',
+    2: 'unhappy',
+    1: 'unhappy',
+    0: null
 };
 
 let currentState = GAME_STATES.INTRO_NARRATION;
@@ -87,14 +101,26 @@ function loadImage(path) {
     });
 }
 
+// Game variables
+let currentTitleIndex = 0;
+let currentLoreIndex = 0;
+let currentPortalFrame = 0;
+let portalAnimationTimer;
+
 // Asset paths
 const assetPaths = {
     titles: [
         "assets/start screen/title1.TIF",
         "assets/start screen/title2.TIF",
         "assets/start screen/title3.TIF",
-        "assets/start screen/title4.TIF",
-        "assets/start screen/title5.TIF"
+        "assets/start screen/title4.TIF"
+    ],
+    lore: [
+        "assets/start screen/lore1.TIF",
+        "assets/start screen/lore2.TIF",
+        "assets/start screen/lore3.TIF",
+        "assets/start screen/lore4.TIF",
+        "assets/start screen/lore5.TIF"
     ],
     levels: [
         "assets/level 1/1bg.TIF",
@@ -139,11 +165,6 @@ Promise.all([
     startGame();
 }).catch(error => console.error("Error loading assets:", error));
 
-// Game variables
-let currentTitleIndex = 0;
-let currentPortalFrame = 0;
-let portalAnimationTimer;
-
 // Game functions
 function startGame() {
     // Initialize game state
@@ -156,6 +177,20 @@ function advanceTitleSlides() {
     currentTitleIndex++;
     if (currentTitleIndex < assetPaths.titles.length) {
         bgImage.src = assetPaths.titles[currentTitleIndex];
+        draw();
+    } else {
+        // Move to lore slides
+        currentState = GAME_STATES.LORE_SLIDES;
+        currentLoreIndex = 0;
+        bgImage.src = assetPaths.lore[0];
+        draw();
+    }
+}
+
+function advanceLoreSlides() {
+    currentLoreIndex++;
+    if (currentLoreIndex < assetPaths.lore.length) {
+        bgImage.src = assetPaths.lore[currentLoreIndex];
         draw();
     } else {
         // Show "Press anywhere to start" message
@@ -178,16 +213,14 @@ function resetGame() {
 }
 
 function showGuard(level) {
-    debugger;
     console.debug('showGuard called', {level, guardPath: assetPaths.guards[level]});
     showShadowGuard = true;
-    shadowGuardImg.src = assetPaths.guards[level];
+    shadowGuardImg.src = `assets/shadow guards/${LEVEL_CONFIGS[level].guardImage}`;
     isInputLocked = true;
     draw();
 }
 
 function handleChoice(direction) {
-    debugger;
     console.debug('handleChoice', {direction, currentLevel, currentAttempt, lightBars});
     if (isInputLocked) return;
 
@@ -224,7 +257,7 @@ function handleChoice(direction) {
                 draw();
             }
         } else {
-            // Wrong choice
+            // Wrong choice - reduce light bars based on level
             lightBars -= (currentLevel === 2) ? 2 : 1;
 
             if (lightBars <= 0) {
@@ -234,7 +267,7 @@ function handleChoice(direction) {
                 draw();
             } else {
                 // Show shadow guard
-                showGuard(currentLevel + 1);
+                showGuard(currentLevel);
             }
         }
         footstepSound.onended = null; // Clean up
@@ -273,14 +306,12 @@ function startVictorySequence() {
 function drawScene() {
     console.debug('drawScene called', {bgImage, complete: bgImage.complete, width: bgImage.naturalWidth});
     if (bgImage && bgImage.complete && bgImage.naturalWidth > 0) {
-        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+        // Draw background image to fit canvas exactly
+        ctx.drawImage(bgImage, 0, 0, 800, 600);
     } else {
-        ctx.fillStyle = '#111';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#fff';
-        ctx.font = '20px sans-serif';
-        ctx.fillText('Loading...', canvas.width / 2 - 40, canvas.height / 2);
-        debugger;
+        // Black background when no image
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, 800, 600);
     }
 }
 
@@ -289,7 +320,7 @@ function drawHUD() {
     ctx.fillStyle = "gold";
     ctx.font = "20px 'Press Start 2P'";
     ctx.textAlign = "right";
-    ctx.fillText(`Level ${currentLevel + 1}`, canvas.width - 10, 30);
+    ctx.fillText(`Level ${currentLevel + 1}`, 790, 30);
 
     // Draw light bars (stars) in top left
     const starSize = 20;
@@ -310,6 +341,17 @@ function drawHUD() {
         ctx.closePath();
         ctx.fill();
     }
+
+    // Draw Luma's expression based on light bars
+    if (lightBars > 0) {
+        const expression = EXPRESSION_MAPPING[lightBars];
+        if (expression) {
+            const expressionImg = imageCache[assetPaths.expressions[expression]];
+            if (expressionImg) {
+                ctx.drawImage(expressionImg, 10, 500, 80, 80);
+            }
+        }
+    }
 }
 
 function draw() {
@@ -324,10 +366,10 @@ function draw() {
 
         case GAME_STATES.TITLE_SCREEN:
             ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "white";
-            ctx.font = "24px 'Press Start 2P'";
-            ctx.textAlign = "center";
-            ctx.fillText("Press any key to start", canvas.width / 2, canvas.height - 50);
+            break;
+
+        case GAME_STATES.LORE_SLIDES:
+            ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
             break;
 
         case GAME_STATES.PLAYING:
