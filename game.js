@@ -182,10 +182,58 @@ function showGuard(level) {
 }
 
 function updateLevel() {
-    bgImage.src = assetPaths.levels[currentLevel];
-    dialogueText.textContent = LEVEL_CONFIGS[currentLevel].dialogue;
-    document.getElementById('level-star').style.backgroundImage = `url('${assetPaths.stars[currentLevel]}')`;
-    draw();
+    // Start fade transition
+    fadeTransition(() => {
+        bgImage.src = assetPaths.levels[currentLevel];
+        dialogueText.textContent = LEVEL_CONFIGS[currentLevel].dialogue;
+        document.getElementById('level-star').style.backgroundImage = `url('${assetPaths.stars[currentLevel]}')`;
+        
+        // Show level title briefly
+        showLevelTitle();
+        
+        draw();
+    });
+}
+
+function fadeTransition(callback) {
+    let alpha = 1;
+    const fadeOut = () => {
+        alpha -= 0.1;
+        if (alpha <= 0) {
+            callback();
+            fadeIn();
+        } else {
+            ctx.globalAlpha = alpha;
+            draw();
+            requestAnimationFrame(fadeOut);
+        }
+    };
+    
+    const fadeIn = () => {
+        alpha += 0.1;
+        if (alpha >= 1) {
+            ctx.globalAlpha = 1;
+            draw();
+        } else {
+            ctx.globalAlpha = alpha;
+            draw();
+            requestAnimationFrame(fadeIn);
+        }
+    };
+    
+    fadeOut();
+}
+
+function showLevelTitle() {
+    const levelTitle = document.createElement('div');
+    levelTitle.id = 'level-title';
+    levelTitle.textContent = `Entering Level ${currentLevel + 1}...`;
+    document.body.appendChild(levelTitle);
+    
+    // Remove after animation
+    setTimeout(() => {
+        levelTitle.remove();
+    }, 2000);
 }
 
 function handleChoice(direction) {
