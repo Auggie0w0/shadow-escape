@@ -125,14 +125,16 @@ canvas {
     left: 50%;
     transform: translateX(-50%);
     width: 700px;
-    padding: 10px 20px;
-    background-color: transparent;
+    padding: 15px 20px;
+    background-color: rgba(0, 0, 0, 0.8);
     font-family: 'Press Start 2P', monospace;
-    font-size: 16px;
+    font-size: 14px;
     color: white;
     text-align: center;
     pointer-events: none;
     z-index: 999;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 #dialogue-text {
@@ -140,7 +142,7 @@ canvas {
     padding: 0;
     line-height: 1.5;
     word-wrap: break-word;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 /* Level Star Styles */

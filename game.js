@@ -473,9 +473,9 @@ function draw() {
             const lumaImg = imageCache[assetPaths.luma];
             if (lumaImg) {
                 const lumaWidth = 200;
-                const lumaHeight = 250;
+                const lumaHeight = 300;
                 const lumaX = 40;
-                const lumaY = 250; // Position higher to reach into dark area
+                const lumaY = 160; // Position higher to reach into dark area
                 ctx.drawImage(lumaImg, lumaX, lumaY, lumaWidth, lumaHeight);
             }
             
@@ -511,6 +511,12 @@ function draw() {
 
 // Event listeners
 document.addEventListener("keydown", (e) => {
+    // Handle game over reset first
+    if (currentState === GAME_STATES.GAME_OVER && e.key === 'Enter') {
+        resetGame();
+        return;
+    }
+    
     if (currentState === GAME_STATES.INTRO_NARRATION) {
         if (e.key === 'Enter') {
             currentNarrationIndex++;
@@ -713,4 +719,12 @@ window.addEventListener('load', () => {
     initGame().catch(error => {
         console.error('Game initialization failed:', error);
     });
+});
+
+// Remove the DOM-based Luma portrait since we're using canvas
+document.addEventListener('DOMContentLoaded', () => {
+    const lumaPortrait = document.getElementById('luma-portrait');
+    if (lumaPortrait) {
+        lumaPortrait.remove();
+    }
 });
