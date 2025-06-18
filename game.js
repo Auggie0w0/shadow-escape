@@ -515,7 +515,7 @@ function handleNarration() {
         document.getElementById('narration').classList.add('fade-out');
         setTimeout(() => {
             document.getElementById('narration').style.display = 'none';
-            updateState(GAME_STATES.PLAYING);
+            runTitleSequence();
         }, 1000);
     }
 }
