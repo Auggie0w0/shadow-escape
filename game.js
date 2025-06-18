@@ -390,8 +390,10 @@ function draw() {
 
 // Event listeners
 document.addEventListener("keydown", (e) => {
+    console.log("Key pressed:", e.key); // Debug log
     if (currentState === GAME_STATES.INTRO_NARRATION) {
         if (e.key === 'Enter' || e.key === 'Return') {
+            console.log("Advance narration triggered"); // Debug log
             advanceNarration();
         }
         return;
@@ -439,11 +441,12 @@ document.addEventListener("keydown", (e) => {
 function advanceNarration() {
     const currentText = document.querySelector('.current-text');
     const nextText = currentText.nextElementSibling;
-    
+    console.log("Current narration text:", currentText?.textContent); // Debug log
     if (nextText && nextText.classList.contains('next-text')) {
         currentText.classList.remove('current-text');
         nextText.classList.remove('next-text');
         nextText.classList.add('current-text');
+        console.log("Advanced to next narration text:", nextText.textContent); // Debug log
     } else {
         // End of narration, transition to title screen
         narrationContainer.classList.add('fade-out');
@@ -452,6 +455,7 @@ function advanceNarration() {
             canvas.style.display = 'block';
             currentState = GAME_STATES.TITLE_SCREEN;
             draw();
+            console.log("Narration ended, switched to TITLE_SCREEN"); // Debug log
         }, 1000);
     }
 }
