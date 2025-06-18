@@ -15,21 +15,21 @@ const LEVEL_CONFIGS = {
         shadowGuardPath: 'w', // shadow guard appears on straight path
         attempts: 3,
         dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?",
-        guardImage: 'SG1.TIF'
+        guardImage: 'SG1.TIF'  // Updated to uppercase
     },
     1: { // Level 2
         correctPaths: ['w', 'a', 'd'], // straight, left, right
         shadowGuardPath: 'd', // shadow guard appears on right path
         attempts: 3,
         dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?",
-        guardImage: 'SG2.TIF'
+        guardImage: 'SG2.TIF'  // Updated to uppercase
     },
     2: { // Level 3
         correctPaths: ['a', 'w'], // left, straight
         shadowGuardPath: 'a', // shadow guard appears on left path
         attempts: 3,
         dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?",
-        guardImage: 'SG3.TIF'
+        guardImage: 'SG3.TIF'  // Updated to uppercase
     }
 };
 
@@ -109,31 +109,31 @@ let portalAnimationTimer;
 // Asset paths
 const assetPaths = {
     levels: [
-        "assets/level 1/1bg.tif",
-        "assets/level 2/2bg.tif",
-        "assets/level 3/3bg.tif"
+        "assets/level 1/1bg.TIF",
+        "assets/level 2/2bg.TIF",
+        "assets/level 3/3bg.TIF"
     ],
     guards: [
-        "assets/shadow guards/sg0.tif",
-        "assets/shadow guards/sg1.tif",
-        "assets/shadow guards/sg2.tif",
-        "assets/shadow guards/sg3.tif"
+        "assets/shadow guards/SG0.TIF",
+        "assets/shadow guards/SG1.TIF",
+        "assets/shadow guards/SG2.TIF",
+        "assets/shadow guards/SG3.TIF"
     ],
     portal: [
-        "assets/portal/portal1.tif",
-        "assets/portal/portal2.tif",
-        "assets/portal/portal3.tif",
-        "assets/portal/portal4.tif",
-        "assets/portal/portal5.tif",
-        "assets/portal/portal6.tif",
-        "assets/portal/portal7.tif"
+        "assets/portal/portal1.TIF",
+        "assets/portal/portal2.TIF",
+        "assets/portal/portal3.TIF",
+        "assets/portal/portal4.TIF",
+        "assets/portal/portal5.TIF",
+        "assets/portal/portal6.TIF",
+        "assets/portal/portal7.TIF"
     ],
     expressions: {
-        happy: "assets/emotions/happy.tif",
-        worry: "assets/emotions/worry.tif",
-        unhappy: "assets/emotions/unhappy.tif"
+        happy: "assets/emotions/happy.TIF",
+        worry: "assets/emotions/worry.TIF",
+        unhappy: "assets/emotions/unhappy.TIF"
     },
-    fail: "assets/failbg.tif"
+    fail: "assets/failbg.TIF"
 };
 
 // Preload images
@@ -147,7 +147,8 @@ Promise.all([
     loadImage(assetPaths.fail)
 ]).then(() => {
     console.log("All assets loaded");
-    startGame();
+    initGame();
+    updateState(GAME_STATES.INTRO_NARRATION);
 }).catch(error => console.error("Error loading assets:", error));
 
 // Game functions
@@ -447,9 +448,7 @@ function handleNarration() {
         document.getElementById('narration').classList.add('fade-out');
         setTimeout(() => {
             document.getElementById('narration').style.display = 'none';
-            document.getElementById('gameCanvas').style.display = 'block';
-            currentState = GAME_STATES.PLAYING;
-            startGame();
+            updateState(GAME_STATES.PLAYING);
         }, 1000);
     }
 }
@@ -467,14 +466,34 @@ function updateState(newState) {
             
         case GAME_STATES.PLAYING:
             document.getElementById('gameCanvas').style.display = 'block';
+            bgImage.src = assetPaths.levels[currentLevel];
+            dialogueText.textContent = LEVEL_CONFIGS[currentLevel].dialogue;
+            draw();
             break;
             
         case GAME_STATES.GAME_OVER:
             document.getElementById('gameCanvas').style.display = 'block';
+            draw();
             break;
             
         case GAME_STATES.VICTORY:
             document.getElementById('gameCanvas').style.display = 'block';
+            draw();
             break;
     }
+}
+
+// Update game initialization
+function initGame() {
+    // Initialize game state
+    currentState = GAME_STATES.INTRO_NARRATION;
+    currentNarrationIndex = 0;
+    narrationComplete = false;
+    lightBars = 5;
+    currentLevel = 0;
+    currentAttempt = 0;
+    gameOver = false;
+    gameWon = false;
+    showShadowGuard = false;
+    isInputLocked = false;
 }
