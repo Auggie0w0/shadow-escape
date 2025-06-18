@@ -38,6 +38,7 @@ let gameWon = false;
 let showShadowGuard = false;
 let isInputLocked = false;
 let bgImage = new Image();
+let shadowGuardImg = new Image();
 
 // DOM Elements
 const narrationContainer = document.getElementById('narration');
@@ -66,7 +67,19 @@ function loadImage(path) {
             resolve(img);
         };
         img.onerror = (e) => {
-            reject(e);
+            console.error('Failed to load image:', path);
+            // Create a placeholder image (solid color)
+            const placeholder = document.createElement('canvas');
+            placeholder.width = 800;
+            placeholder.height = 600;
+            const pctx = placeholder.getContext('2d');
+            pctx.fillStyle = '#222';
+            pctx.fillRect(0, 0, 800, 600);
+            pctx.fillStyle = '#fff';
+            pctx.font = '20px sans-serif';
+            pctx.fillText('Image not found', 300, 300);
+            imageCache[path] = placeholder;
+            resolve(placeholder);
         };
         img.src = path;
     });
@@ -252,7 +265,15 @@ function startVictorySequence() {
 }
 
 function drawScene() {
-    ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+    if (bgImage && bgImage.complete && bgImage.naturalWidth > 0) {
+        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#fff';
+        ctx.font = '20px sans-serif';
+        ctx.fillText('Loading...', canvas.width / 2 - 40, canvas.height / 2);
+    }
 }
 
 function drawHUD() {
@@ -306,7 +327,13 @@ function draw() {
             drawHUD();
 
             if (showShadowGuard) {
-                ctx.drawImage(shadowGuardImg, canvas.width / 2 - 100, canvas.height / 2 - 100, 200, 200);
+                if (shadowGuardImg && shadowGuardImg.complete && shadowGuardImg.naturalWidth > 0) {
+                    ctx.drawImage(shadowGuardImg, canvas.width / 2 - 100, canvas.height / 2 - 100, 200, 200);
+                } else {
+                    ctx.fillStyle = '#f00';
+                    ctx.font = '16px sans-serif';
+                    ctx.fillText('Guard image missing', canvas.width / 2 - 60, canvas.height / 2);
+                }
             }
             break;
 

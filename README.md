@@ -28,9 +28,8 @@ Website: https://auggie0w0.github.io/shadow-escape/
 
 ## 🚀 Getting Started
 
-### 🔗 Play Online (GitHub Pages)
-1. Visit: `https://YOUR-USERNAME.github.io/shadow-escape/`  
-   *(Replace with your actual GitHub username after deployment)*
+### 🔗 Play Online
+1. Visit: https://auggie0w0.github.io/shadow-escape/
 
 ### 💻 Run Locally
 1. Download or clone this repo
