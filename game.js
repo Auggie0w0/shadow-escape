@@ -109,31 +109,31 @@ let portalAnimationTimer;
 // Asset paths
 const assetPaths = {
     levels: [
-        "assets/level 1/1bg.TIF",
-        "assets/level 2/2bg.TIF",
-        "assets/level 3/3bg.TIF"
+        "assets/level 1/1bg.tif",
+        "assets/level 2/2bg.tif",
+        "assets/level 3/3bg.tif"
     ],
     guards: [
-        "assets/shadow guards/SG0.TIF",
-        "assets/shadow guards/SG1.TIF",
-        "assets/shadow guards/SG2.TIF",
-        "assets/shadow guards/SG3.TIF"
+        "assets/shadow guards/sg0.tif",
+        "assets/shadow guards/sg1.tif",
+        "assets/shadow guards/sg2.tif",
+        "assets/shadow guards/sg3.tif"
     ],
     portal: [
-        "assets/portal/portal1.TIF",
-        "assets/portal/portal2.TIF",
-        "assets/portal/portal3.TIF",
-        "assets/portal/portal4.TIF",
-        "assets/portal/portal5.TIF",
-        "assets/portal/portal6.TIF",
-        "assets/portal/portal7.TIF"
+        "assets/portal/portal1.tif",
+        "assets/portal/portal2.tif",
+        "assets/portal/portal3.tif",
+        "assets/portal/portal4.tif",
+        "assets/portal/portal5.tif",
+        "assets/portal/portal6.tif",
+        "assets/portal/portal7.tif"
     ],
     expressions: {
-        happy: "assets/emotions/happy.TIF",
-        worry: "assets/emotions/worry.TIF",
-        unhappy: "assets/emotions/unhappy.TIF"
+        happy: "assets/emotions/happy.tif",
+        worry: "assets/emotions/worry.tif",
+        unhappy: "assets/emotions/unhappy.tif"
     },
-    fail: "assets/failbg.TIF"
+    fail: "assets/failbg.tif"
 };
 
 // Preload images
@@ -152,11 +152,8 @@ Promise.all([
 
 // Game functions
 function startGame() {
-    // Initialize game state
-    currentState = GAME_STATES.PLAYING;
-    bgImage.src = assetPaths.levels[0];
-    dialogueText.textContent = LEVEL_CONFIGS[0].dialogue;
-    draw();
+    // Start with narration
+    updateState(GAME_STATES.INTRO_NARRATION);
 }
 
 function resetGame() {
@@ -242,20 +239,12 @@ function startVictorySequence() {
 
     setTimeout(() => {
         clearInterval(portalAnimationTimer);
-        // Display win text
-        ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "white";
-        ctx.font = "24px 'Press Start 2P'";
-        ctx.textAlign = "center";
-        let text1 = "Congratulations!";
-        let text2 = "You helped Luma find her way back to her dimension.";
-        let text3 = "She can now search for her parents!";
-        ctx.fillText(text1, canvas.width / 2, canvas.height / 2 - 50);
-        ctx.fillText(text2, canvas.width / 2, canvas.height / 2);
-        ctx.fillText(text3, canvas.width / 2, canvas.height / 2 + 50);
-
+        // Show victory message
+        document.getElementById('victory-message').classList.remove('hidden');
+        
+        // Reset game after delay
         setTimeout(() => {
+            document.getElementById('victory-message').classList.add('hidden');
             resetGame();
         }, 5000);
     }, assetPaths.portal.length * 200);
@@ -300,12 +289,19 @@ function drawHUD() {
         ctx.fill();
     }
 
-    // Draw Luma's expression based on light bars
+    // Update Luma's expression based on light bars
     if (lightBars > 0) {
         const expression = EXPRESSION_MAPPING[lightBars];
         if (expression) {
             const expressionImg = imageCache[assetPaths.expressions[expression]];
             if (expressionImg) {
+                // Update portrait div background
+                const portraitDiv = document.getElementById('luma-portrait');
+                portraitDiv.style.backgroundImage = `url('${assetPaths.expressions[expression]}')`;
+                portraitDiv.style.backgroundSize = 'cover';
+                portraitDiv.style.backgroundPosition = 'center';
+                
+                // Also draw on canvas for backup
                 ctx.drawImage(expressionImg, 10, 500, 80, 80);
             }
         }
@@ -330,6 +326,12 @@ function draw() {
                     ctx.font = '16px sans-serif';
                     ctx.fillText('Guard image missing', canvas.width / 2 - 60, canvas.height / 2);
                 }
+                
+                // Show input freeze message
+                ctx.fillStyle = "white";
+                ctx.font = "16px 'Press Start 2P'";
+                ctx.textAlign = "center";
+                ctx.fillText("Press ENTER to continue...", canvas.width/2, canvas.height - 50);
             }
             break;
 
@@ -350,6 +352,15 @@ function draw() {
 // Event listeners
 document.addEventListener("keydown", (e) => {
     console.log("Key pressed:", e.key); // Debug log
+    
+    if (currentState === GAME_STATES.INTRO_NARRATION) {
+        if (e.key === 'Enter') {
+            currentNarrationIndex++;
+            handleNarration();
+        }
+        return;
+    }
+    
     if (currentState === GAME_STATES.PLAYING) {
         if (isInputLocked) {
             if (e.key === 'Enter') {
@@ -408,3 +419,62 @@ const portalFrames = [
 ];
 
 const failScreen = "assets/failbg.TIF";
+
+// Narration state management
+let currentNarrationIndex = 0;
+let narrationComplete = false;
+
+function handleNarration() {
+    const narrationTexts = document.querySelectorAll('.narration-text p');
+    const skipText = document.querySelector('.skip-text');
+    
+    // Hide all narration texts
+    narrationTexts.forEach(p => {
+        p.classList.remove('current-text');
+        p.style.opacity = '0';
+        p.style.transform = 'translateY(20px)';
+    });
+    
+    // Show current narration text
+    if (currentNarrationIndex < narrationTexts.length) {
+        const currentText = narrationTexts[currentNarrationIndex];
+        currentText.classList.add('current-text');
+        currentText.style.opacity = '1';
+        currentText.style.transform = 'translateY(0)';
+    } else {
+        // All narration complete
+        narrationComplete = true;
+        document.getElementById('narration').classList.add('fade-out');
+        setTimeout(() => {
+            document.getElementById('narration').style.display = 'none';
+            document.getElementById('gameCanvas').style.display = 'block';
+            currentState = GAME_STATES.PLAYING;
+            startGame();
+        }, 1000);
+    }
+}
+
+// Update game state management
+function updateState(newState) {
+    currentState = newState;
+    
+    switch (currentState) {
+        case GAME_STATES.INTRO_NARRATION:
+            document.getElementById('narration').style.display = 'flex';
+            document.getElementById('gameCanvas').style.display = 'none';
+            handleNarration();
+            break;
+            
+        case GAME_STATES.PLAYING:
+            document.getElementById('gameCanvas').style.display = 'block';
+            break;
+            
+        case GAME_STATES.GAME_OVER:
+            document.getElementById('gameCanvas').style.display = 'block';
+            break;
+            
+        case GAME_STATES.VICTORY:
+            document.getElementById('gameCanvas').style.display = 'block';
+            break;
+    }
+}

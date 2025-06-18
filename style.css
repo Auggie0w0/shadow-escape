@@ -157,3 +157,36 @@ canvas {
     overflow: hidden;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
+
+/* Victory Message Styles */
+#victory-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.9);
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    z-index: 1000;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+#victory-message h2 {
+    color: #ff6b6b;
+    font-size: 32px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+}
+
+#victory-message p {
+    color: white;
+    font-size: 18px;
+    margin: 10px 0;
+    line-height: 1.5;
+}
+
+#victory-message.hidden {
+    display: none;
+}
