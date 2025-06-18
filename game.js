@@ -37,6 +37,7 @@ let gameOver = false;
 let gameWon = false;
 let showShadowGuard = false;
 let isInputLocked = false;
+let bgImage = new Image();
 
 // DOM Elements
 const narrationContainer = document.getElementById('narration');
@@ -48,8 +49,6 @@ const dialogueText = document.getElementById('dialogue-text');
 
 // Audio elements
 const footstepSound = document.getElementById('footstep-sound');
-const wrongSound = document.getElementById('wrong-sound');
-const correctSound = document.getElementById('correct-sound');
 
 // Image loading
 const imageCache = {};
@@ -179,44 +178,48 @@ function handleChoice(direction) {
     footstepSound.currentTime = 0;
     footstepSound.play();
 
-    // Check if choice was correct
-    if (direction === currentConfig.correctPaths[currentAttempt]) {
-        currentAttempt++;
-        correctSound.play();
+    // Lock input until footstep sound ends
+    isInputLocked = true;
+    footstepSound.onended = () => {
+        isInputLocked = false;
+        // Check if choice was correct
+        if (direction === currentConfig.correctPaths[currentAttempt]) {
+            currentAttempt++;
 
-        if (currentAttempt >= currentConfig.attempts) {
-            // Level complete
-            currentLevel++;
-            currentAttempt = 0;
+            if (currentAttempt >= currentConfig.attempts) {
+                // Level complete
+                currentLevel++;
+                currentAttempt = 0;
 
-            if (currentLevel >= 3) {
-                currentState = GAME_STATES.VICTORY;
-                startVictorySequence();
+                if (currentLevel >= 3) {
+                    currentState = GAME_STATES.VICTORY;
+                    startVictorySequence();
+                } else {
+                    // Move to the next level
+                    bgImage.src = assetPaths.levels[currentLevel];
+                    dialogueText.textContent = LEVEL_CONFIGS[currentLevel].dialogue;
+                    draw();
+                }
             } else {
-                // Move to the next level
-                bgImage.src = assetPaths.levels[currentLevel];
-                dialogueText.textContent = LEVEL_CONFIGS[currentLevel].dialogue;
+                // Continue on current level
                 draw();
             }
         } else {
-            // Continue on current level
-            draw();
-        }
-    } else {
-        // Wrong choice
-        lightBars -= (currentLevel === 2) ? 2 : 1;
-        wrongSound.play();
+            // Wrong choice
+            lightBars -= (currentLevel === 2) ? 2 : 1;
 
-        if (lightBars <= 0) {
-            // Game over
-            currentState = GAME_STATES.GAME_OVER;
-            bgImage.src = assetPaths.fail;
-            draw();
-        } else {
-            // Show shadow guard
-            showGuard(currentLevel + 1);
+            if (lightBars <= 0) {
+                // Game over
+                currentState = GAME_STATES.GAME_OVER;
+                bgImage.src = assetPaths.fail;
+                draw();
+            } else {
+                // Show shadow guard
+                showGuard(currentLevel + 1);
+            }
         }
-    }
+        footstepSound.onended = null; // Clean up
+    };
 }
 
 function startVictorySequence() {
