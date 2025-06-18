@@ -246,11 +246,25 @@ function updateLevel() {
         // Update level star if available
         const levelStar = document.getElementById('level-star');
         if (levelStar) {
+            const starPath = assetPaths.stars[currentLevel];
+            console.log(`Loading star image: ${starPath}`);
+            
             try {
-                levelStar.style.backgroundImage = `url('${assetPaths.stars[currentLevel]}')`;
+                levelStar.style.backgroundImage = `url('${starPath}')`;
+                
+                // Verify image loaded
+                const img = new Image();
+                img.onload = () => console.log(`Star image loaded successfully: ${starPath}`);
+                img.onerror = () => {
+                    console.warn(`Star image failed to load: ${starPath}`);
+                    // Fallback to gold circle
+                    levelStar.style.backgroundColor = '#FFD700';
+                    levelStar.style.borderRadius = '50%';
+                };
+                img.src = starPath;
             } catch (e) {
-                console.warn('Star image not available:', e);
-                // Fallback to a colored star
+                console.warn(`Error setting star image: ${e.message}`);
+                // Fallback to gold circle
                 levelStar.style.backgroundColor = '#FFD700';
                 levelStar.style.borderRadius = '50%';
             }
@@ -304,11 +318,55 @@ function showLevelTitle() {
     }, 2000);
 }
 
+function drawHUD() {
+    // Always update dialogue text
+    dialogueText.textContent = LEVEL_CONFIGS[currentLevel]?.dialogue || '';
+    
+    // Draw star icon in the top-right to show level number
+    ctx.fillStyle = "gold";
+    ctx.font = "20px 'Press Start 2P'";
+    ctx.textAlign = "right";
+    ctx.fillText(`Level ${currentLevel + 1}`, 790, 30);
+
+    // Draw light bars (stars) in top left
+    const starSize = 20;
+    const padding = 5;
+    const startX = 10;
+    const startY = 10;
+
+    for (let i = 0; i < 5; i++) {
+        ctx.fillStyle = i < lightBars ? "yellow" : "gray";
+        ctx.beginPath();
+        ctx.moveTo(startX + i * (starSize + padding) + starSize / 2, startY);
+        for (let j = 0; j < 5; j++) {
+            const angle = (j * 4 * Math.PI) / 5 - Math.PI / 2;
+            const x = startX + i * (starSize + padding) + starSize / 2 + Math.cos(angle) * starSize / 2;
+            const y = startY + starSize / 2 + Math.sin(angle) * starSize / 2;
+            ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    // Update Luma's expression based on light bars
+    if (lightBars > 0) {
+        const expression = EXPRESSION_MAPPING[lightBars];
+        if (expression) {
+            const expressionImg = imageCache[assetPaths.expressions[expression]];
+            if (expressionImg) {
+                // Draw Luma in canvas
+                ctx.drawImage(expressionImg, 20, 420, 150, 150);
+            }
+        }
+    }
+}
+
 function handleChoice(direction) {
     console.debug('handleChoice', {direction, currentLevel, currentAttempt, lightBars});
     if (isInputLocked) return;
 
     const currentConfig = LEVEL_CONFIGS[currentLevel];
+    const directionMap = { a: 'LEFT', w: 'FORWARD', d: 'RIGHT' };
 
     // Play footstep sound if it exists
     if (footstepSound) {
@@ -321,6 +379,9 @@ function handleChoice(direction) {
     const unlockInput = () => {
         isInputLocked = false;
         
+        // Show direction feedback
+        dialogueText.textContent = `Luma chose ${directionMap[direction]}.`;
+        
         // Check if choice was correct
         if (direction !== currentConfig.correctPaths[currentAttempt]) {
             // Wrong choice - reduce light bars based on level
@@ -331,7 +392,7 @@ function handleChoice(direction) {
                 currentState = GAME_STATES.GAME_OVER;
                 bgImage.src = assetPaths.fail;
                 draw();
-                return;
+                return; // Prevent further progression
             }
             
             // Show shadow guard
@@ -352,7 +413,11 @@ function handleChoice(direction) {
                 updateLevel();
             }
         } else {
-            draw();
+            // Reset dialogue after a short delay
+            setTimeout(() => {
+                dialogueText.textContent = currentConfig.dialogue;
+                draw();
+            }, 1000);
         }
     };
 
@@ -395,52 +460,6 @@ function drawScene() {
         // Black background when no image
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, 800, 600);
-    }
-}
-
-function drawHUD() {
-    // Draw star icon in the top-right to show level number
-    ctx.fillStyle = "gold";
-    ctx.font = "20px 'Press Start 2P'";
-    ctx.textAlign = "right";
-    ctx.fillText(`Level ${currentLevel + 1}`, 790, 30);
-
-    // Draw light bars (stars) in top left
-    const starSize = 20;
-    const padding = 5;
-    const startX = 10;
-    const startY = 10;
-
-    for (let i = 0; i < 5; i++) {
-        ctx.fillStyle = i < lightBars ? "yellow" : "gray";
-        ctx.beginPath();
-        ctx.moveTo(startX + i * (starSize + padding) + starSize / 2, startY);
-        for (let j = 0; j < 5; j++) {
-            const angle = (j * 4 * Math.PI) / 5 - Math.PI / 2;
-            const x = startX + i * (starSize + padding) + starSize / 2 + Math.cos(angle) * starSize / 2;
-            const y = startY + starSize / 2 + Math.sin(angle) * starSize / 2;
-            ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-        ctx.fill();
-    }
-
-    // Update Luma's expression based on light bars
-    if (lightBars > 0) {
-        const expression = EXPRESSION_MAPPING[lightBars];
-        if (expression) {
-            const expressionImg = imageCache[assetPaths.expressions[expression]];
-            if (expressionImg) {
-                // Update portrait div background
-                const portraitDiv = document.getElementById('luma-portrait');
-                portraitDiv.style.backgroundImage = `url('${assetPaths.expressions[expression]}')`;
-                portraitDiv.style.backgroundSize = 'cover';
-                portraitDiv.style.backgroundPosition = 'center';
-                
-                // Also draw on canvas for backup
-                // ctx.drawImage(expressionImg, 10, 500, 80, 80);
-            }
-        }
     }
 }
 
@@ -583,6 +602,7 @@ function handleNarration() {
         document.getElementById('narration').classList.add('fade-out');
         setTimeout(() => {
             document.getElementById('narration').style.display = 'none';
+            updateState(GAME_STATES.TITLE_SCREEN);
             runTitleSequence();
         }, 1000);
     }
