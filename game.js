@@ -587,6 +587,10 @@ let narrationComplete = false;
 function handleNarration() {
     const narrationTexts = document.querySelectorAll('.narration-text p');
     const skipText = document.querySelector('.skip-text');
+    const canvas = document.getElementById('gameCanvas');
+    
+    // Hide canvas during narration
+    canvas.style.display = 'none';
     
     // Hide all narration texts
     narrationTexts.forEach(p => {
@@ -603,10 +607,9 @@ function handleNarration() {
         currentText.style.transform = 'translateY(0)';
     } else {
         // All narration complete
-        narrationComplete = true;
-        document.getElementById('narration').classList.add('fade-out');
+        narrationContainer.classList.add('fade-out');
         setTimeout(() => {
-            document.getElementById('narration').style.display = 'none';
+            narrationContainer.style.display = 'none';
             updateState(GAME_STATES.TITLE_SCREEN);
             runTitleSequence();
         }, 1000);
@@ -700,6 +703,9 @@ async function initGame() {
         gameWon = false;
         showShadowGuard = false;
         isInputLocked = false;
+        
+        // Hide canvas initially
+        document.getElementById('gameCanvas').style.display = 'none';
         
         // Set initial level star
         const levelStar = document.getElementById('level-star');
