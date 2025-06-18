@@ -389,37 +389,37 @@ document.addEventListener("keydown", (e) => {
 });
 
 const titleSlides = [
-    "assets/start screen/title1.TIF",
-    "assets/start screen/title2.TIF",
-    "assets/start screen/title3.TIF",
-    "assets/start screen/title4.TIF",
-    "assets/start screen/title5.TIF"
+    "assets/start screen/title1.png",
+    "assets/start screen/title2.png",
+    "assets/start screen/title3.png",
+    "assets/start screen/title4.png",
+    "assets/start screen/title5.png"
 ];
 
 const levelBackgrounds = [
-    "assets/level 1/1bg.TIF",
-    "assets/level 2/2bg.TIF",
-    "assets/level 3/3bg.TIF"
+    "assets/level 1/1bg.png",
+    "assets/level 2/2bg.png",
+    "assets/level 3/3bg.png"
 ];
 
 const shadowGuards = [
-    "assets/shadow guards/SG1.TIF", // Level 1
-    "assets/shadow guards/SG2.TIF", // Level 2
-    "assets/shadow guards/SG3.TIF", // Level 3
-    "assets/shadow guards/SG0.TIF"  // Boss
+    "assets/shadow guards/SG1.png", // Level 1
+    "assets/shadow guards/SG2.png", // Level 2
+    "assets/shadow guards/SG3.png", // Level 3
+    "assets/shadow guards/SG0.png"  // Boss
 ];
 
 const portalFrames = [
-    "assets/portal/portal1.TIF",
-    "assets/portal/portal2.TIF",
-    "assets/portal/portal3.TIF",
-    "assets/portal/portal4.TIF",
-    "assets/portal/portal5.TIF",
-    "assets/portal/portal6.TIF",
-    "assets/portal/portal7.TIF"
+    "assets/portal/portal1.png",
+    "assets/portal/portal2.png",
+    "assets/portal/portal3.png",
+    "assets/portal/portal4.png",
+    "assets/portal/portal5.png",
+    "assets/portal/portal6.png",
+    "assets/portal/portal7.png"
 ];
 
-const failScreen = "assets/failbg.TIF";
+const failScreen = "assets/failbg.png";
 
 // Narration state management
 let currentNarrationIndex = 0;
