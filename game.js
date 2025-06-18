@@ -435,3 +435,23 @@ document.addEventListener("keydown", (e) => {
         handleChoice(direction);
     }
 });
+
+function advanceNarration() {
+    const currentText = document.querySelector('.current-text');
+    const nextText = currentText.nextElementSibling;
+    
+    if (nextText && nextText.classList.contains('next-text')) {
+        currentText.classList.remove('current-text');
+        nextText.classList.remove('next-text');
+        nextText.classList.add('current-text');
+    } else {
+        // End of narration, transition to title screen
+        narrationContainer.classList.add('fade-out');
+        setTimeout(() => {
+            narrationContainer.style.display = 'none';
+            canvas.style.display = 'block';
+            currentState = GAME_STATES.TITLE_SCREEN;
+            draw();
+        }, 1000);
+    }
+}

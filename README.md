@@ -43,11 +43,10 @@ Website: https://auggie0w0.github.io/shadow-escape/
 
 | Action        | Key         |
 |---------------|-------------|
-| Move Up       | Arrow Up    |
-| Move Down     | Arrow Down  |
-| Move Left     | Arrow Left  |
-| Move Right    | Arrow Right |
-| Select Choice | Mouse Click |
+| Move Left     | A           |
+| Move Forward  | W           |
+| Move Right    | D           |
+| Confirm       | Enter       |
 
 ---
 
@@ -90,3 +89,4 @@ This project is for educational and non-commercial use. All rights reserved by t
 This game is licensed under the MIT License. See the LICENSE file for details.
 
 ---
+
