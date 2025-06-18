@@ -567,3 +567,59 @@ function initGame() {
     // Set initial level star
     document.getElementById('level-star').style.backgroundImage = `url('${assetPaths.stars[currentLevel]}')`;
 }
+
+function runTitleSequence() {
+    const titleScreen = document.getElementById('title-screen');
+    const titleImage = document.getElementById('title-image');
+    const startText = document.getElementById('start-text');
+    let currentTitleIndex = 0;
+    
+    // Show title screen
+    titleScreen.style.display = 'flex';
+    
+    // Function to update title image
+    const updateTitleImage = () => {
+        if (currentTitleIndex < titleSlides.length) {
+            titleImage.src = titleSlides[currentTitleIndex];
+            
+            // Show start text only on last image
+            if (currentTitleIndex === titleSlides.length - 1) {
+                startText.style.display = 'block';
+            }
+            
+            currentTitleIndex++;
+        }
+    };
+    
+    // Initial image
+    updateTitleImage();
+    
+    // Set up interval for title slides
+    const titleInterval = setInterval(() => {
+        if (currentTitleIndex < titleSlides.length) {
+            updateTitleImage();
+        } else {
+            clearInterval(titleInterval);
+        }
+    }, 2000);
+    
+    // Handle click/enter to start
+    const startGame = () => {
+        clearInterval(titleInterval);
+        titleScreen.style.display = 'none';
+        updateState(GAME_STATES.PLAYING);
+    };
+    
+    // Add event listeners
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && currentTitleIndex === titleSlides.length) {
+            startGame();
+        }
+    });
+    
+    titleScreen.addEventListener('click', () => {
+        if (currentTitleIndex === titleSlides.length) {
+            startGame();
+        }
+    });
+}

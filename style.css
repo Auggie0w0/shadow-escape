@@ -155,7 +155,15 @@ canvas {
 
 /* Remove old luma-portrait styles */
 #luma-portrait {
-    display: none;
+    position: absolute;
+    bottom: 100px;
+    left: 20px;
+    width: 180px;
+    height: 180px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 999;
 }
 
 /* Victory Message Styles */
