@@ -15,21 +15,21 @@ const LEVEL_CONFIGS = {
         shadowGuardPath: 'w', // shadow guard appears on straight path
         attempts: 3,
         dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?",
-        guardImage: 'SG1.tif'  // Updated to lowercase
+        guardImage: 'SG1.png'  // Updated to png
     },
     1: { // Level 2
         correctPaths: ['w', 'a', 'd'], // straight, left, right
         shadowGuardPath: 'd', // shadow guard appears on right path
         attempts: 3,
         dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?",
-        guardImage: 'SG2.tif'  // Updated to lowercase
+        guardImage: 'SG2.png'  // Updated to png
     },
     2: { // Level 3
         correctPaths: ['a', 'w'], // left, straight
         shadowGuardPath: 'a', // shadow guard appears on left path
         attempts: 3,
         dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?",
-        guardImage: 'SG3.tif'  // Updated to lowercase
+        guardImage: 'SG3.png'  // Updated to png
     }
 };
 
@@ -109,31 +109,31 @@ let portalAnimationTimer;
 // Asset paths
 const assetPaths = {
     levels: [
-        "assets/level 1/1bg.tif",
-        "assets/level 2/2bg.tif",
-        "assets/level 3/3bg.tif"
+        "assets/level 1/1bg.png",
+        "assets/level 2/2bg.png",
+        "assets/level 3/3bg.png"
     ],
     guards: [
-        "assets/shadow guards/SG0.tif",
-        "assets/shadow guards/SG1.tif",
-        "assets/shadow guards/SG2.tif",
-        "assets/shadow guards/SG3.tif"
+        "assets/shadow guards/SG0.png",
+        "assets/shadow guards/SG1.png",
+        "assets/shadow guards/SG2.png",
+        "assets/shadow guards/SG3.png"
     ],
     portal: [
-        "assets/portal/portal1.tif",
-        "assets/portal/portal2.tif",
-        "assets/portal/portal3.tif",
-        "assets/portal/portal4.tif",
-        "assets/portal/portal5.tif",
-        "assets/portal/portal6.tif",
-        "assets/portal/portal7.tif"
+        "assets/portal/portal1.png",
+        "assets/portal/portal2.png",
+        "assets/portal/portal3.png",
+        "assets/portal/portal4.png",
+        "assets/portal/portal5.png",
+        "assets/portal/portal6.png",
+        "assets/portal/portal7.png"
     ],
     expressions: {
-        happy: "assets/emotions/happy.tif",
-        worry: "assets/emotions/worry.tif",
-        unhappy: "assets/emotions/unhappy.tif"
+        happy: "assets/emotions/happy.png",
+        worry: "assets/emotions/worry.png",
+        unhappy: "assets/emotions/unhappy.png"
     },
-    fail: "assets/failbg.tif"
+    fail: "assets/failbg.png"
 };
 
 // Preload images
