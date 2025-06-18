@@ -135,9 +135,9 @@ const assetPaths = {
     },
     fail: "assets/failbg.png",
     stars: [
-        "assets/stars/star1.png",
-        "assets/stars/star2.png",
-        "assets/stars/star3.png"
+        "assets/level 1/1.png",
+        "assets/level 2/2.png",
+        "assets/level 3/3.png"
     ]
 };
 
@@ -186,7 +186,19 @@ function updateLevel() {
     fadeTransition(() => {
         bgImage.src = assetPaths.levels[currentLevel];
         dialogueText.textContent = LEVEL_CONFIGS[currentLevel].dialogue;
-        document.getElementById('level-star').style.backgroundImage = `url('${assetPaths.stars[currentLevel]}')`;
+        
+        // Update level star if available
+        const levelStar = document.getElementById('level-star');
+        if (levelStar) {
+            try {
+                levelStar.style.backgroundImage = `url('${assetPaths.stars[currentLevel]}')`;
+            } catch (e) {
+                console.warn('Star image not available:', e);
+                // Fallback to a colored star
+                levelStar.style.backgroundColor = '#FFD700';
+                levelStar.style.borderRadius = '50%';
+            }
+        }
         
         // Show level title briefly
         showLevelTitle();
