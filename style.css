@@ -121,23 +121,26 @@ canvas {
 /* Dialogue Box Styles */
 #dialogue-box {
     position: absolute;
-    bottom: 40px;
-    left: 220px;
-    width: 500px;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    padding: 10px 20px;
     background-color: transparent;
-    border: none;
-    box-shadow: none;
     font-family: 'Press Start 2P', monospace;
     font-size: 16px;
-    color: black;
+    color: white;
+    text-align: center;
+    pointer-events: none;
+    z-index: 999;
 }
 
 #dialogue-text {
-    word-wrap: break-word;
-    line-height: 1.5;
     margin: 0;
     padding: 0;
-    text-shadow: none;
+    line-height: 1.5;
+    word-wrap: break-word;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Level Star Styles */

@@ -138,7 +138,8 @@ const assetPaths = {
         "assets/level 1/1.png",
         "assets/level 2/2.png",
         "assets/level 3/3.png"
-    ]
+    ],
+    luma: "assets/luma mini.png"  // Add the high-res Luma image
 };
 
 // Preload images
@@ -224,9 +225,16 @@ function resetGame() {
     currentAttempt = 0;
     gameOver = false;
     gameWon = false;
-    currentState = GAME_STATES.PLAYING;
-    bgImage.src = assetPaths.levels[0];
-    draw();
+    showShadowGuard = false;
+    isInputLocked = false;
+    
+    // Update level star
+    const levelStar = document.getElementById('level-star');
+    if (levelStar) {
+        levelStar.style.backgroundImage = `url('${assetPaths.stars[currentLevel]}')`;
+    }
+    
+    updateState(GAME_STATES.PLAYING);
 }
 
 function showGuard(level) {
@@ -319,16 +327,7 @@ function showLevelTitle() {
 }
 
 function drawHUD() {
-    // Always update dialogue text
-    dialogueText.textContent = LEVEL_CONFIGS[currentLevel]?.dialogue || '';
-    
-    // Draw star icon in the top-right to show level number
-    ctx.fillStyle = "gold";
-    ctx.font = "20px 'Press Start 2P'";
-    ctx.textAlign = "right";
-    ctx.fillText(`Level ${currentLevel + 1}`, 790, 30);
-
-    // Draw light bars (stars) in top left
+    // Draw light bars
     const starSize = 20;
     const padding = 5;
     const startX = 10;
@@ -348,23 +347,15 @@ function drawHUD() {
         ctx.fill();
     }
 
-    // Update Luma's expression based on light bars
-    if (lightBars > 0) {
-        const expression = EXPRESSION_MAPPING[lightBars];
-        if (expression) {
-            const expressionImg = imageCache[assetPaths.expressions[expression]];
-            if (expressionImg) {
-                // Draw Luma in canvas
-                ctx.drawImage(expressionImg, 20, 420, 150, 150);
-            }
-        }
-    }
+    // Draw level number
+    ctx.fillStyle = "white";
+    ctx.font = "20px 'Press Start 2P'";
+    ctx.textAlign = "right";
+    ctx.fillText(`Level ${currentLevel + 1}`, canvas.width - 10, 30);
 }
 
 function handleGameOver() {
-    currentState = GAME_STATES.GAME_OVER;
-    bgImage.src = assetPaths.fail;
-    draw();
+    updateState(GAME_STATES.GAME_OVER);
     
     // Add one-time event listener for retry
     const handleRetry = (e) => {
@@ -378,59 +369,59 @@ function handleGameOver() {
 }
 
 function handleChoice(direction) {
-    console.debug('handleChoice', {direction, currentLevel, currentAttempt, lightBars});
     if (isInputLocked) return;
-
+    
     const currentConfig = LEVEL_CONFIGS[currentLevel];
     const directionMap = { a: 'LEFT', w: 'FORWARD', d: 'RIGHT' };
-
-    // Lock input until footstep sound ends or timeout
+    
+    // Lock input
     isInputLocked = true;
-    const unlockInput = () => {
-        isInputLocked = false;
+    
+    // Play footstep sound
+    const footstepSound = document.getElementById('footstep-sound');
+    if (footstepSound) {
+        footstepSound.currentTime = 0;
+        footstepSound.play().catch(console.error);
+    }
+    
+    // Update dialogue
+    dialogueText.textContent = `Luma chose ${directionMap[direction]}.`;
+    
+    // Check if choice was correct
+    if (direction !== currentConfig.correctPaths[currentAttempt]) {
+        // Wrong choice - reduce light bars
+        lightBars -= (currentLevel === 2) ? 2 : 1;
         
-        // Show direction feedback
-        dialogueText.textContent = `Luma chose ${directionMap[direction]}.`;
-        
-        // Check if choice was correct
-        if (direction !== currentConfig.correctPaths[currentAttempt]) {
-            // Wrong choice - reduce light bars based on level
-            lightBars -= (currentLevel === 2) ? 2 : 1;
-            
-            if (lightBars <= 0) {
-                // Game over
-                handleGameOver();
-                return; // Prevent further progression
-            }
-            
-            // Show shadow guard
-            showGuard(currentLevel);
+        if (lightBars <= 0) {
+            handleGameOver();
+            return;
         }
         
-        // Always increment attempt and check level completion
-        currentAttempt++;
+        // Show shadow guard
+        showGuard(currentLevel);
+    }
+    
+    // Increment attempt
+    currentAttempt++;
+    
+    // Check level completion
+    if (currentAttempt >= currentConfig.attempts) {
+        currentLevel++;
+        currentAttempt = 0;
         
-        if (currentAttempt >= currentConfig.attempts) {
-            currentLevel++;
-            currentAttempt = 0;
-
-            if (currentLevel >= 3) {
-                currentState = GAME_STATES.VICTORY;
-                startVictorySequence();
-            } else {
-                updateLevel();
-            }
+        if (currentLevel >= 3) {
+            updateState(GAME_STATES.VICTORY);
         } else {
-            // Reset dialogue after a short delay
-            setTimeout(() => {
-                dialogueText.textContent = currentConfig.dialogue;
-                draw();
-            }, 1000);
+            updateLevel();
         }
-    };
-
-    // Set a timeout in case audio fails to play
-    setTimeout(unlockInput, 500);
+    } else {
+        // Reset dialogue after delay
+        setTimeout(() => {
+            dialogueText.textContent = currentConfig.dialogue;
+            isInputLocked = false;
+            draw();
+        }, 1000);
+    }
 }
 
 function startVictorySequence() {
@@ -467,38 +458,49 @@ function drawScene() {
 }
 
 function draw() {
-    // Clear with black background
+    // Clear canvas
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     switch (currentState) {
         case GAME_STATES.PLAYING:
-            drawScene();
-            drawHUD();
-
-            if (showShadowGuard) {
-                if (shadowGuardImg && shadowGuardImg.complete && shadowGuardImg.naturalWidth > 0) {
-                    ctx.drawImage(shadowGuardImg, canvas.width / 2 - 100, canvas.height / 2 - 100, 200, 200);
-                } else {
-                    ctx.fillStyle = '#f00';
-                    ctx.font = '16px sans-serif';
-                    ctx.fillText('Guard image missing', canvas.width / 2 - 60, canvas.height / 2);
-                }
-                
-                // Show input freeze message
-                ctx.fillStyle = "white";
-                ctx.font = "16px 'Press Start 2P'";
-                ctx.textAlign = "center";
-                ctx.fillText("Press ENTER to continue...", canvas.width/2, canvas.height - 50);
+            // Draw background
+            if (bgImage && bgImage.complete) {
+                ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
             }
+            
+            // Draw Luma with higher resolution image
+            const lumaImg = imageCache[assetPaths.luma];
+            if (lumaImg) {
+                const lumaWidth = 200;
+                const lumaHeight = 250;
+                const lumaX = 40;
+                const lumaY = 250; // Position higher to reach into dark area
+                ctx.drawImage(lumaImg, lumaX, lumaY, lumaWidth, lumaHeight);
+            }
+            
+            // Draw shadow guard if shown
+            if (showShadowGuard) {
+                const guardImg = imageCache[`assets/shadow guards/${LEVEL_CONFIGS[currentLevel].guardImage}`];
+                if (guardImg) {
+                    ctx.drawImage(guardImg, canvas.width / 2 - 100, canvas.height / 2 - 100, 200, 200);
+                }
+            }
+            
+            // Draw HUD
+            drawHUD();
             break;
 
         case GAME_STATES.GAME_OVER:
-            ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            if (bgImage && bgImage.complete) {
+                ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            }
             break;
 
         case GAME_STATES.VICTORY:
-            drawScene();
+            if (bgImage && bgImage.complete) {
+                ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            }
             break;
     }
 
@@ -509,8 +511,6 @@ function draw() {
 
 // Event listeners
 document.addEventListener("keydown", (e) => {
-    console.log("Key pressed:", e.key); // Debug log
-    
     if (currentState === GAME_STATES.INTRO_NARRATION) {
         if (e.key === 'Enter') {
             currentNarrationIndex++;
@@ -529,16 +529,12 @@ document.addEventListener("keydown", (e) => {
             }
             return;
         }
-
+        
         let direction = null;
         if (e.key.toLowerCase() === 'a') direction = 'a';
         if (e.key.toLowerCase() === 'w') direction = 'w';
         if (e.key.toLowerCase() === 'd') direction = 'd';
-        if (e.key === 'Enter') {
-            // Confirm after guard event
-            return;
-        }
-
+        
         if (direction) {
             handleChoice(direction);
         }
@@ -613,6 +609,7 @@ function handleNarration() {
 
 // Update game state management
 function updateState(newState) {
+    console.log(`State transition: ${currentState} -> ${newState}`);
     currentState = newState;
     
     switch (currentState) {
@@ -622,8 +619,15 @@ function updateState(newState) {
             handleNarration();
             break;
             
+        case GAME_STATES.TITLE_SCREEN:
+            document.getElementById('gameCanvas').style.display = 'none';
+            document.getElementById('title-screen').style.display = 'flex';
+            runTitleSequence();
+            break;
+            
         case GAME_STATES.PLAYING:
             document.getElementById('gameCanvas').style.display = 'block';
+            document.getElementById('title-screen').style.display = 'none';
             bgImage.src = assetPaths.levels[currentLevel];
             dialogueText.textContent = LEVEL_CONFIGS[currentLevel].dialogue;
             draw();
@@ -631,30 +635,82 @@ function updateState(newState) {
             
         case GAME_STATES.GAME_OVER:
             document.getElementById('gameCanvas').style.display = 'block';
+            bgImage.src = assetPaths.fail;
             draw();
             break;
             
         case GAME_STATES.VICTORY:
             document.getElementById('gameCanvas').style.display = 'block';
-            draw();
+            startVictorySequence();
             break;
     }
 }
 
-// Update game initialization
-function initGame() {
-    // Initialize game state
-    currentState = GAME_STATES.INTRO_NARRATION;
-    currentNarrationIndex = 0;
-    narrationComplete = false;
-    lightBars = 5;
-    currentLevel = 0;
-    currentAttempt = 0;
-    gameOver = false;
-    gameWon = false;
-    showShadowGuard = false;
-    isInputLocked = false;
+// Asset preloading
+function preloadAssets() {
+    const allAssets = [
+        ...assetPaths.levels,
+        ...assetPaths.guards,
+        ...assetPaths.portal,
+        ...Object.values(assetPaths.expressions),
+        assetPaths.fail,
+        ...assetPaths.stars,
+        ...titleSlides
+    ];
+
+    console.log('Starting asset preload...');
     
-    // Set initial level star
-    document.getElementById('level-star').style.backgroundImage = `url('${assetPaths.stars[currentLevel]}')`;
+    return Promise.all(allAssets.map(path => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                console.log(`Loaded: ${path}`);
+                imageCache[path] = img;
+                resolve(img);
+            };
+            img.onerror = () => {
+                console.error(`Failed to load: ${path}`);
+                reject(new Error(`Failed to load: ${path}`));
+            };
+            img.src = path;
+        });
+    }));
 }
+
+// Initialize game
+async function initGame() {
+    try {
+        await preloadAssets();
+        console.log('All assets loaded successfully');
+        
+        // Initialize game state
+        currentState = GAME_STATES.INTRO_NARRATION;
+        currentNarrationIndex = 0;
+        narrationComplete = false;
+        lightBars = 5;
+        currentLevel = 0;
+        currentAttempt = 0;
+        gameOver = false;
+        gameWon = false;
+        showShadowGuard = false;
+        isInputLocked = false;
+        
+        // Set initial level star
+        const levelStar = document.getElementById('level-star');
+        if (levelStar) {
+            levelStar.style.backgroundImage = `url('${assetPaths.stars[currentLevel]}')`;
+        }
+        
+        // Start with narration
+        updateState(GAME_STATES.INTRO_NARRATION);
+    } catch (error) {
+        console.error('Failed to initialize game:', error);
+    }
+}
+
+// Start the game
+window.addEventListener('load', () => {
+    initGame().catch(error => {
+        console.error('Game initialization failed:', error);
+    });
+});
