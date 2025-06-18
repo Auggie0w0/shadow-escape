@@ -121,20 +121,15 @@ canvas {
 /* Dialogue Box Styles */
 #dialogue-box {
     position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 640px; /* 80% of canvas width */
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 10px;
-    padding: 20px;
-    text-align: left;
+    bottom: 40px;
+    left: 220px;
+    width: 500px;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
     font-family: 'Press Start 2P', monospace;
     font-size: 16px;
     color: black;
-    box-sizing: border-box;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    border: 2px solid rgba(0, 0, 0, 0.2);
 }
 
 #dialogue-text {
@@ -142,20 +137,25 @@ canvas {
     line-height: 1.5;
     margin: 0;
     padding: 0;
-    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+    text-shadow: none;
 }
 
-/* Luma portrait container */
-#luma-portrait {
+/* Level Star Styles */
+#level-star {
     position: absolute;
-    bottom: 20px;
-    left: 20px;
+    top: 30px;
+    left: 120px;
     width: 80px;
     height: 80px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    overflow: hidden;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 999;
+}
+
+/* Remove old luma-portrait styles */
+#luma-portrait {
+    display: none;
 }
 
 /* Victory Message Styles */

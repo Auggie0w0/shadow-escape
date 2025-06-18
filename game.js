@@ -133,7 +133,12 @@ const assetPaths = {
         worry: "assets/emotions/worry.png",
         unhappy: "assets/emotions/unhappy.png"
     },
-    fail: "assets/failbg.png"
+    fail: "assets/failbg.png",
+    stars: [
+        "assets/stars/star1.png",
+        "assets/stars/star2.png",
+        "assets/stars/star3.png"
+    ]
 };
 
 // Preload images
@@ -176,58 +181,72 @@ function showGuard(level) {
     draw();
 }
 
+function updateLevel() {
+    bgImage.src = assetPaths.levels[currentLevel];
+    dialogueText.textContent = LEVEL_CONFIGS[currentLevel].dialogue;
+    document.getElementById('level-star').style.backgroundImage = `url('${assetPaths.stars[currentLevel]}')`;
+    draw();
+}
+
 function handleChoice(direction) {
     console.debug('handleChoice', {direction, currentLevel, currentAttempt, lightBars});
     if (isInputLocked) return;
 
     const currentConfig = LEVEL_CONFIGS[currentLevel];
 
-    // Play footstep sound
-    footstepSound.currentTime = 0;
-    footstepSound.play();
+    // Play footstep sound if it exists
+    if (footstepSound) {
+        footstepSound.currentTime = 0;
+        footstepSound.play().catch(e => console.debug('Audio play failed:', e));
+    }
 
-    // Lock input until footstep sound ends
+    // Lock input until footstep sound ends or timeout
     isInputLocked = true;
-    footstepSound.onended = () => {
+    const unlockInput = () => {
         isInputLocked = false;
+        
         // Check if choice was correct
-        if (direction === currentConfig.correctPaths[currentAttempt]) {
-            currentAttempt++;
-
-            if (currentAttempt >= currentConfig.attempts) {
-                // Level complete
-                currentLevel++;
-                currentAttempt = 0;
-
-                if (currentLevel >= 3) {
-                    currentState = GAME_STATES.VICTORY;
-                    startVictorySequence();
-                } else {
-                    // Move to the next level
-                    bgImage.src = assetPaths.levels[currentLevel];
-                    dialogueText.textContent = LEVEL_CONFIGS[currentLevel].dialogue;
-                    draw();
-                }
-            } else {
-                // Continue on current level
-                draw();
-            }
-        } else {
+        if (direction !== currentConfig.correctPaths[currentAttempt]) {
             // Wrong choice - reduce light bars based on level
             lightBars -= (currentLevel === 2) ? 2 : 1;
-
+            
             if (lightBars <= 0) {
                 // Game over
                 currentState = GAME_STATES.GAME_OVER;
                 bgImage.src = assetPaths.fail;
                 draw();
-            } else {
-                // Show shadow guard
-                showGuard(currentLevel);
+                return;
             }
+            
+            // Show shadow guard
+            showGuard(currentLevel);
         }
-        footstepSound.onended = null; // Clean up
+        
+        // Always increment attempt and check level completion
+        currentAttempt++;
+        
+        if (currentAttempt >= currentConfig.attempts) {
+            currentLevel++;
+            currentAttempt = 0;
+
+            if (currentLevel >= 3) {
+                currentState = GAME_STATES.VICTORY;
+                startVictorySequence();
+            } else {
+                updateLevel();
+            }
+        } else {
+            draw();
+        }
     };
+
+    // Set a timeout in case audio fails to play
+    setTimeout(unlockInput, 500);
+    
+    // Also try to use the audio ended event
+    if (footstepSound) {
+        footstepSound.onended = unlockInput;
+    }
 }
 
 function startVictorySequence() {
@@ -303,7 +322,7 @@ function drawHUD() {
                 portraitDiv.style.backgroundPosition = 'center';
                 
                 // Also draw on canvas for backup
-                ctx.drawImage(expressionImg, 10, 500, 80, 80);
+                // ctx.drawImage(expressionImg, 10, 500, 80, 80);
             }
         }
     }
@@ -496,4 +515,7 @@ function initGame() {
     gameWon = false;
     showShadowGuard = false;
     isInputLocked = false;
+    
+    // Set initial level star
+    document.getElementById('level-star').style.backgroundImage = `url('${assetPaths.stars[currentLevel]}')`;
 }
