@@ -103,7 +103,6 @@ function loadImage(path) {
 
 // Game variables
 let currentTitleIndex = 0;
-let currentLoreIndex = 0;
 let currentPortalFrame = 0;
 let portalAnimationTimer;
 
@@ -113,14 +112,8 @@ const assetPaths = {
         "assets/start screen/title1.TIF",
         "assets/start screen/title2.TIF",
         "assets/start screen/title3.TIF",
-        "assets/start screen/title4.TIF"
-    ],
-    lore: [
-        "assets/start screen/lore1.TIF",
-        "assets/start screen/lore2.TIF",
-        "assets/start screen/lore3.TIF",
-        "assets/start screen/lore4.TIF",
-        "assets/start screen/lore5.TIF"
+        "assets/start screen/title4.TIF",
+        "assets/start screen/title5.TIF"
     ],
     levels: [
         "assets/level 1/1bg.TIF",
@@ -179,25 +172,10 @@ function advanceTitleSlides() {
         bgImage.src = assetPaths.titles[currentTitleIndex];
         draw();
     } else {
-        // Move to lore slides
-        currentState = GAME_STATES.LORE_SLIDES;
-        currentLoreIndex = 0;
-        bgImage.src = assetPaths.lore[0];
+        // Move to title screen
+        currentState = GAME_STATES.TITLE_SCREEN;
+        bgImage.src = assetPaths.titles[0];
         draw();
-    }
-}
-
-function advanceLoreSlides() {
-    currentLoreIndex++;
-    if (currentLoreIndex < assetPaths.lore.length) {
-        bgImage.src = assetPaths.lore[currentLoreIndex];
-        draw();
-    } else {
-        // Show "Press anywhere to start" message
-        ctx.fillStyle = "white";
-        ctx.font = "24px 'Press Start 2P'";
-        ctx.textAlign = "center";
-        ctx.fillText("Press anywhere to start the game", canvas.width / 2, canvas.height - 50);
     }
 }
 
@@ -365,10 +343,6 @@ function draw() {
             break;
 
         case GAME_STATES.TITLE_SCREEN:
-            ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
-            break;
-
-        case GAME_STATES.LORE_SLIDES:
             ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
             break;
 
