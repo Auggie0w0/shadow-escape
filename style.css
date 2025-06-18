@@ -115,3 +115,24 @@ canvas {
 .title-text:hover {
     animation: glitch 0.3s infinite;
 }
+
+/* Dialogue Box Styles */
+#dialogue-box {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: left;
+    font-family: monospace, sans-serif;
+    font-size: 16px;
+    color: black;
+    box-sizing: border-box;
+}
+
+#dialogue-text {
+    word-wrap: break-word;
+}
