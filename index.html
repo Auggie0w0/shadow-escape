@@ -9,33 +9,45 @@
     <div id="narration" class="narration-container">
         <div class="narration-text">
             <p class="current-text">Where am I?</p>
-            <p>I touched that shiny star...</p>
-            <p>The next thing I know I ended up here in pitch black.</p>
-            <p>I have to look for my parents and go back to my dimension!</p>
+            <p class="next-text">I touched that shiny star...</p>
+            <p class="next-text">The next thing I know I ended up here in pitch black.</p>
+            <p class="next-text">I have to look for my parents and go back to my dimension!</p>
         </div>
         <p class="skip-text">Press Enter to continue...</p>
     </div>
 
-    <div id="title-screen">
-        <img id="title-image" src="" alt="Title Screen">
-        <p id="start-text">Click or press Enter to start</p>
+    <div id="title-screen" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: black; z-index: 1001; justify-content: center; align-items: center; flex-direction: column;">
+        <img id="title-image" src="" style="width: 600px; margin-bottom: 20px;">
+        <p id="start-text" style="color: white; font-family: 'Press Start 2P'; font-size: 16px; display: none;">Click or press Enter to start</p>
     </div>
 
     <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <p id="choice-prompt" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); color: black; font-family: 'Press Start 2P'; font-size: 14px; text-align: center; width: 100%; pointer-events: none; z-index: 999;">
+        Which way will Luma go? LEFT, RIGHT, or FORWARD?
+    </p>
 
     <div id="dialogue-box">
         <p id="dialogue-text"></p>
     </div>
     
     <div id="level-star"></div>
-
+    
     <div id="victory-message">
         <h2>Congratulations!</h2>
         <p>You helped Luma find her way back to her dimension.</p>
         <p>She can now search for her parents!</p>
     </div>
 
+    <div id="ending-screen">
+        <p>Luma has found her way back to her dimension</p>
+        <p>she once again will embark on the adventure</p>
+        <p>to look for her parents across dimensions!</p>
+        <p class="press-enter">Press enter to return to home screen</p>
+    </div>
+
     <audio id="bg-music" src="assets/audio/bg-music.mp3" loop></audio>
+
     <audio id="footstep-sound" src="assets/audio/outdoor-footsteps-102461.mp3"></audio>
 
     <script src="game.js"></script>

@@ -5,7 +5,8 @@ const GAME_STATES = {
     LORE_SLIDES: 'lore_slides',
     PLAYING: 'playing',
     GAME_OVER: 'game_over',
-    VICTORY: 'victory'
+    VICTORY: 'victory',
+    ENDING: 'ending'
 };
 
 // Level configurations
@@ -218,6 +219,23 @@ function resetGame() {
     showShadowGuard = false;
     isInputLocked = false;
     
+    // Reset SG0_shown flag
+    delete imageCache['SG0_shown'];
+    
+    // Ensure victory message is hidden
+    const victoryMessage = document.getElementById('victory-message');
+    if (victoryMessage) {
+        victoryMessage.classList.remove('show');
+        victoryMessage.style.display = 'none';
+    }
+    
+    // Ensure ending screen is hidden
+    const endingScreen = document.getElementById('ending-screen');
+    if (endingScreen) {
+        endingScreen.classList.remove('show', 'fade-out');
+        endingScreen.style.display = 'none';
+    }
+    
     // Load initial background image
     bgImage = imageCache[assetPaths.levels[currentLevel]];
     
@@ -260,7 +278,7 @@ async function handleChoice(direction) {
     const currentConfig = LEVEL_CONFIGS[currentLevel];
     const directionMap = { a: 'LEFT', w: 'FORWARD', d: 'RIGHT' };
     
-    // Lock input
+    // Lock input immediately
     isInputLocked = true;
     
     // Play footstep sound and wait for it to finish
@@ -313,7 +331,7 @@ function showGuard(level) {
     }
 
     showShadowGuard = true;
-    isInputLocked = true;
+    isInputLocked = true; // Keep input locked
     draw();
     
     // Show input prompt after a short delay
@@ -351,6 +369,8 @@ function updateLevel() {
         // Show level title briefly
         showLevelTitle();
         
+        // Ensure we're in playing state
+        currentState = GAME_STATES.PLAYING;
         draw();
     });
 }
@@ -459,16 +479,57 @@ function startVictorySequence() {
             clearInterval(portalAnimationTimer);
             victoryMessage.classList.add('show');
             
-            // Reset game after delay
+            // Show ending screen after victory message
             setTimeout(() => {
                 victoryMessage.classList.remove('show');
-                resetGame();
-            }, 5000);
+                showEndingScreen();
+            }, 3000);
         }, assetPaths.portal.length * 200);
     } else {
         // If no stars left, go to game over
         handleGameOver();
     }
+}
+
+function showEndingScreen() {
+    const endingScreen = document.getElementById('ending-screen');
+    const textElements = endingScreen.querySelectorAll('p:not(.press-enter)');
+    const pressEnterText = endingScreen.querySelector('p.press-enter');
+    
+    // Show the container but keep texts hidden
+    endingScreen.style.display = 'flex';
+    endingScreen.classList.add('show');
+    
+    // Reset all text elements
+    textElements.forEach(text => {
+        text.style.opacity = '0';
+        text.style.transform = 'translateY(20px)';
+    });
+    if (pressEnterText) {
+        pressEnterText.style.opacity = '0';
+        pressEnterText.style.transform = 'translateY(20px)';
+    }
+    
+    // Stagger the text animations with longer delays
+    textElements.forEach((text, index) => {
+        setTimeout(() => {
+            text.classList.add('current-text');
+            text.style.opacity = '1';
+            text.style.transform = 'translateY(0)';
+        }, (index + 1) * 1000); // 1 second delay between each text
+    });
+    
+    // Show the "Press Enter" text after all other text has appeared
+    if (pressEnterText) {
+        setTimeout(() => {
+            pressEnterText.classList.add('current-text');
+            pressEnterText.style.opacity = '1';
+            pressEnterText.style.transform = 'translateY(0)';
+        }, (textElements.length + 1) * 1000 + 500); // Additional delay after other text
+    }
+    
+    // Update game state
+    currentState = GAME_STATES.ENDING;
 }
 
 function drawScene() {
@@ -499,14 +560,17 @@ function draw() {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             
-            // Draw Luma with higher resolution image
-            const lumaImg = imageCache[assetPaths.luma];
-            if (lumaImg) {
-                const lumaWidth = 200;
-                const lumaHeight = 300;
-                const lumaX = 40;
-                const lumaY = 160; // Position higher to reach into dark area
-                ctx.drawImage(lumaImg, lumaX, lumaY, lumaWidth, lumaHeight);
+            // Draw emotion image based on light bars (replacing Luma)
+            const currentEmotion = EXPRESSION_MAPPING[lightBars];
+            if (currentEmotion && currentEmotion !== null) {
+                const emotionImg = imageCache[assetPaths.expressions[currentEmotion]];
+                if (emotionImg) {
+                    const emotionWidth = 300; // Bigger size
+                    const emotionHeight = 400; // Bigger size
+                    const emotionX = 50; // Left side positioning
+                    const emotionY = 100; // Centered vertically
+                    ctx.drawImage(emotionImg, emotionX, emotionY, emotionWidth, emotionHeight);
+                }
             }
             
             // Draw shadow guard if shown
@@ -548,6 +612,10 @@ function draw() {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             break;
+
+        case GAME_STATES.ENDING:
+            // Implement ending screen drawing logic here
+            break;
     }
 
     if (currentState !== GAME_STATES.PLAYING) {
@@ -563,9 +631,19 @@ function handleKeyPress(e) {
     console.log('Key pressed:', e.key, 'Current state:', currentState);
     
     switch (currentState) {
-        case GAME_STATES.GAME_OVER:
+        case GAME_STATES.ENDING:
             if (e.key === 'Enter') {
-                resetGame();
+                const endingScreen = document.getElementById('ending-screen');
+                endingScreen.classList.add('fade-out');
+                
+                // Wait for fade out animation
+                setTimeout(() => {
+                    endingScreen.classList.remove('show', 'fade-out');
+                    endingScreen.style.display = 'none';
+                    // Reset game and show title screen
+                    resetGame();
+                    updateState(GAME_STATES.TITLE_SCREEN);
+                }, 1000);
             }
             break;
             
@@ -685,6 +763,21 @@ function updateState(newState) {
     console.log(`State transition: ${currentState} -> ${newState}`);
     currentState = newState;
     
+    // Clean up any lingering UI elements
+    const victoryMessage = document.getElementById('victory-message');
+    const endingScreen = document.getElementById('ending-screen');
+    
+    if (newState !== GAME_STATES.VICTORY && newState !== GAME_STATES.ENDING) {
+        if (victoryMessage) {
+            victoryMessage.classList.remove('show');
+            victoryMessage.style.display = 'none';
+        }
+        if (endingScreen) {
+            endingScreen.classList.remove('show', 'fade-out');
+            endingScreen.style.display = 'none';
+        }
+    }
+    
     switch (currentState) {
         case GAME_STATES.INTRO_NARRATION:
             document.getElementById('narration').style.display = 'flex';
@@ -716,6 +809,10 @@ function updateState(newState) {
             document.getElementById('gameCanvas').style.display = 'block';
             startVictorySequence();
             break;
+
+        case GAME_STATES.ENDING:
+            // Implement ending screen logic here
+            break;
     }
 }
 
@@ -739,8 +836,25 @@ async function initGame() {
         showShadowGuard = false;
         isInputLocked = false;
         
+        // Reset SG0_shown flag
+        delete imageCache['SG0_shown'];
+        
         // Hide canvas initially
         document.getElementById('gameCanvas').style.display = 'none';
+        
+        // Ensure victory message is hidden
+        const victoryMessage = document.getElementById('victory-message');
+        if (victoryMessage) {
+            victoryMessage.classList.remove('show');
+            victoryMessage.style.display = 'none';
+        }
+        
+        // Ensure ending screen is hidden
+        const endingScreen = document.getElementById('ending-screen');
+        if (endingScreen) {
+            endingScreen.classList.remove('show', 'fade-out');
+            endingScreen.style.display = 'none';
+        }
         
         // Set initial level star
         const levelStar = document.getElementById('level-star');
@@ -768,5 +882,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const lumaPortrait = document.getElementById('luma-portrait');
     if (lumaPortrait) {
         lumaPortrait.remove();
+    }
+    
+    // Ensure victory and ending screens are hidden on page load
+    const victoryMessage = document.getElementById('victory-message');
+    if (victoryMessage) {
+        victoryMessage.classList.remove('show');
+        victoryMessage.style.display = 'none';
+    }
+    
+    const endingScreen = document.getElementById('ending-screen');
+    if (endingScreen) {
+        endingScreen.classList.remove('show', 'fade-out');
+        endingScreen.style.display = 'none';
     }
 });

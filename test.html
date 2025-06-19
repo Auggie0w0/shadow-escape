@@ -3,71 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <title>Shadow Escape - Test</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #111;
-            color: white;
-        }
-        .test-section {
-            margin: 20px 0;
-            padding: 10px;
-            border: 1px solid #333;
-        }
-        .success { color: #4CAF50; }
-        .error { color: #f44336; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Shadow Escape - Game Test</h1>
-    
-    <div class="test-section">
-        <h2>Game Changes Summary:</h2>
-        <ul>
-            <li class="success">✓ Changed to 1 decision per level (instead of 3)</li>
-            <li class="success">✓ Fixed image loading to use image cache</li>
-            <li class="success">✓ Ensured all assets are preloaded</li>
-            <li class="success">✓ Fixed shadow guard display</li>
-            <li class="success">✓ Fixed background image loading</li>
-        </ul>
+    <div id="narration" class="narration-container">
+        <div class="narration-text">
+            <p class="current-text">Where am I?</p>
+            <p class="next-text">I touched that shiny star...</p>
+            <p class="next-text">The next thing I know I ended up here in pitch black.</p>
+            <p class="next-text">I have to look for my parents and go back to my dimension!</p>
+        </div>
+        <p class="skip-text">Press Enter to continue...</p>
+    </div>
+
+    <div id="title-screen" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: black; z-index: 1001; justify-content: center; align-items: center; flex-direction: column;">
+        <img id="title-image" src="" style="width: 600px; margin-bottom: 20px;">
+        <p id="start-text" style="color: white; font-family: 'Press Start 2P'; font-size: 16px; display: none;">Click or press Enter to start</p>
+    </div>
+
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <p id="choice-prompt" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); color: black; font-family: 'Press Start 2P'; font-size: 14px; text-align: center; width: 100%; pointer-events: none; z-index: 999;">
+        Which way will Luma go? LEFT, RIGHT, or FORWARD?
+    </p>
+
+    <div id="dialogue-box">
+        <p id="dialogue-text"></p>
     </div>
     
-    <div class="test-section">
-        <h2>Level Configuration:</h2>
-        <ul>
-            <li><strong>Level 1:</strong> Correct path = RIGHT (d key)</li>
-            <li><strong>Level 2:</strong> Correct path = FORWARD (w key)</li>
-            <li><strong>Level 3:</strong> Correct path = LEFT (a key)</li>
-        </ul>
+    <div id="level-star"></div>
+
+    <div id="victory-message">
+        <h2>Congratulations!</h2>
+        <p>You helped Luma find her way back to her dimension.</p>
+        <p>She can now search for her parents!</p>
     </div>
-    
-    <div class="test-section">
-        <h2>Controls:</h2>
-        <ul>
-            <li><strong>A:</strong> Go LEFT</li>
-            <li><strong>W:</strong> Go FORWARD</li>
-            <li><strong>D:</strong> Go RIGHT</li>
-            <li><strong>Enter:</strong> Continue after shadow guard encounter</li>
-        </ul>
+
+    <div id="ending-screen">
+        <p>Luma has found her way back to her dimension</p>
+        <p>she once again will embark on the adventure</p>
+        <p>to look for her parents across dimensions!</p>
+        <p class="press-enter">Press enter to return to home screen</p>
     </div>
-    
-    <div class="test-section">
-        <h2>Game Flow:</h2>
-        <ol>
-            <li>Intro narration (press Enter to continue)</li>
-            <li>Title sequence (click or press Enter to start)</li>
-            <li>Level 1: Choose RIGHT (d) to win</li>
-            <li>Level 2: Choose FORWARD (w) to win</li>
-            <li>Level 3: Choose LEFT (a) to win</li>
-            <li>Victory sequence with portal animation</li>
-        </ol>
-    </div>
-    
-    <div class="test-section">
-        <a href="index.html" style="color: #4CAF50; font-size: 18px; text-decoration: none;">
-            → Launch Game
-        </a>
-    </div>
+
+    <audio id="bg-music" src="assets/audio/bg-music.mp3" loop></audio>
+    <audio id="footstep-sound" src="assets/audio/outdoor-footsteps-102461.mp3"></audio>
+
+    <script src="game.js"></script>
 </body>
 </html> 
