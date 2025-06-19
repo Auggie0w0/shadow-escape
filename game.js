@@ -11,25 +11,25 @@ const GAME_STATES = {
 // Level configurations
 const LEVEL_CONFIGS = {
     0: { // Level 1
-        correctPaths: ['d', 'w', 'a'], // right, straight, left
+        correctPath: 'd', // right
         shadowGuardPath: 'w', // shadow guard appears on straight path
-        attempts: 3,
+        attempts: 1, // Changed from 3 to 1
         dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?",
-        guardImage: 'SG1.png'  // Updated to png
+        guardImage: 'SG1.png'
     },
     1: { // Level 2
-        correctPaths: ['w', 'a', 'd'], // straight, left, right
+        correctPath: 'w', // straight
         shadowGuardPath: 'd', // shadow guard appears on right path
-        attempts: 3,
+        attempts: 1, // Changed from 3 to 1
         dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?",
-        guardImage: 'SG2.png'  // Updated to png
+        guardImage: 'SG2.png'
     },
     2: { // Level 3
-        correctPaths: ['a', 'w'], // left, straight
+        correctPath: 'a', // left
         shadowGuardPath: 'a', // shadow guard appears on left path
-        attempts: 3,
+        attempts: 1, // Changed from 3 to 1
         dialogue: "Which way will Luma go? LEFT, RIGHT, or FORWARD?",
-        guardImage: 'SG3.png'  // Updated to png
+        guardImage: 'SG3.png'
     }
 };
 
@@ -150,12 +150,20 @@ Promise.all([
     loadImage(assetPaths.expressions.happy),
     loadImage(assetPaths.expressions.worry),
     loadImage(assetPaths.expressions.unhappy),
-    loadImage(assetPaths.fail)
+    loadImage(assetPaths.fail),
+    loadImage(assetPaths.luma),
+    ...assetPaths.stars.map(loadImage),
+    ...titleSlides.map(loadImage)
 ]).then(() => {
-    console.log("All assets loaded");
+    console.log("All assets loaded successfully");
     initGame();
     updateState(GAME_STATES.INTRO_NARRATION);
-}).catch(error => console.error("Error loading assets:", error));
+}).catch(error => {
+    console.error("Error loading assets:", error);
+    // Continue anyway to prevent game from not starting
+    initGame();
+    updateState(GAME_STATES.INTRO_NARRATION);
+});
 
 // Game functions
 function startGame() {
@@ -228,6 +236,9 @@ function resetGame() {
     showShadowGuard = false;
     isInputLocked = false;
     
+    // Load initial background image
+    bgImage = imageCache[assetPaths.levels[currentLevel]];
+    
     // Update level star
     const levelStar = document.getElementById('level-star');
     if (levelStar) {
@@ -242,10 +253,10 @@ function showGuard(level) {
 
     // Special: use SG0 only once if dropping 2 lightBars
     if (currentLevel === 2 && lightBars <= 3 && !imageCache['SG0_shown']) {
-        shadowGuardImg.src = assetPaths.guards[0]; // SG0
+        shadowGuardImg = imageCache[assetPaths.guards[0]]; // SG0
         imageCache['SG0_shown'] = true; // prevent repeat
     } else {
-        shadowGuardImg.src = `assets/shadow guards/${LEVEL_CONFIGS[level].guardImage}`;
+        shadowGuardImg = imageCache[`assets/shadow guards/${LEVEL_CONFIGS[level].guardImage}`];
     }
 
     showShadowGuard = true;
@@ -256,7 +267,7 @@ function showGuard(level) {
 function updateLevel() {
     // Start fade transition
     fadeTransition(() => {
-        bgImage.src = assetPaths.levels[currentLevel];
+        bgImage = imageCache[assetPaths.levels[currentLevel]];
         dialogueText.textContent = LEVEL_CONFIGS[currentLevel].dialogue;
         
         // Update level star if available
@@ -396,7 +407,7 @@ function handleChoice(direction) {
     dialogueText.textContent = `Luma chose ${directionMap[direction]}.`;
     
     // Check if choice was correct
-    if (direction !== currentConfig.correctPaths[currentAttempt]) {
+    if (direction !== currentConfig.correctPath) {
         // Wrong choice - reduce light bars
         lightBars -= (currentLevel === 2) ? 2 : 1;
         
@@ -407,13 +418,8 @@ function handleChoice(direction) {
         
         // Show shadow guard
         showGuard(currentLevel);
-    }
-    
-    // Increment attempt
-    currentAttempt++;
-    
-    // Check level completion
-    if (currentAttempt >= currentConfig.attempts) {
+    } else {
+        // Correct choice - move to next level
         currentLevel++;
         currentAttempt = 0;
         
@@ -422,20 +428,16 @@ function handleChoice(direction) {
         } else {
             updateLevel();
         }
-    } else {
-        // Reset dialogue after delay
-        setTimeout(() => {
-            dialogueText.textContent = currentConfig.dialogue;
-            isInputLocked = false;
-            draw();
-        }, 1000);
     }
 }
 
 function startVictorySequence() {
     let frameIndex = 0;
     portalAnimationTimer = setInterval(() => {
-        bgImage.src = assetPaths.portal[frameIndex];
+        const portalImg = imageCache[assetPaths.portal[frameIndex]];
+        if (portalImg) {
+            bgImage = portalImg;
+        }
         frameIndex = (frameIndex + 1) % assetPaths.portal.length;
         draw();
     }, 200);
@@ -475,6 +477,10 @@ function draw() {
             // Draw background
             if (bgImage && bgImage.complete) {
                 ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            } else {
+                // Fallback to black background
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             
             // Draw Luma with higher resolution image
@@ -489,9 +495,8 @@ function draw() {
             
             // Draw shadow guard if shown
             if (showShadowGuard) {
-                const guardImg = imageCache[`assets/shadow guards/${LEVEL_CONFIGS[currentLevel].guardImage}`];
-                if (guardImg) {
-                    ctx.drawImage(guardImg, canvas.width / 2 - 100, canvas.height / 2 - 100, 200, 200);
+                if (shadowGuardImg) {
+                    ctx.drawImage(shadowGuardImg, canvas.width / 2 - 100, canvas.height / 2 - 100, 200, 200);
                     
                     // Show input freeze message
                     ctx.fillStyle = "white";
@@ -508,6 +513,9 @@ function draw() {
         case GAME_STATES.GAME_OVER:
             if (bgImage && bgImage.complete) {
                 ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             // Show game over message
             ctx.fillStyle = "white";
@@ -519,6 +527,9 @@ function draw() {
         case GAME_STATES.VICTORY:
             if (bgImage && bgImage.complete) {
                 ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             break;
     }
@@ -549,7 +560,7 @@ document.addEventListener("keydown", (e) => {
             if (e.key === 'Enter') {
                 isInputLocked = false;
                 showShadowGuard = false;
-                bgImage.src = assetPaths.levels[currentLevel];
+                bgImage = imageCache[assetPaths.levels[currentLevel]];
                 draw(); // redraw scene with guard removed
                 return;
             }
@@ -657,14 +668,14 @@ function updateState(newState) {
         case GAME_STATES.PLAYING:
             document.getElementById('gameCanvas').style.display = 'block';
             document.getElementById('title-screen').style.display = 'none';
-            bgImage.src = assetPaths.levels[currentLevel];
+            bgImage = imageCache[assetPaths.levels[currentLevel]];
             dialogueText.textContent = LEVEL_CONFIGS[currentLevel].dialogue;
             draw();
             break;
             
         case GAME_STATES.GAME_OVER:
             document.getElementById('gameCanvas').style.display = 'block';
-            bgImage.src = assetPaths.fail;
+            bgImage = imageCache[assetPaths.fail];
             draw();
             break;
             
