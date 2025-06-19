@@ -9,20 +9,26 @@ Website: https://auggie0w0.github.io/shadow-escape/
 ## 🎮 Game Overview
 
 - **Genre:** Puzzle / Adventure / Interactive Story
-- **Objective:** Choose the correct path on each level and avoid losing all light bars.
-- **Levels:** 3 stages with unique maze paths and story-based decisions.
-- **Win Condition:** Reach the final portal with at least 1 light bar.
-- **Lose Condition:** Lose all 5 light bars — your light fades and the game resets.
+- **Objective:** Choose the correct path on each level while maintaining your light bars
+- **Levels:** 3 stages, each with a unique path and shadow guard
+- **Win Condition:** Complete all levels with at least 1 light bar remaining
+- **Lose Condition:** Lose all light bars to the shadow guards
 
 ---
 
 ## 🧩 Game Features
 
-- One screen at a time (story mode format)
-- Arrow-key movement and decision-based gameplay
-- Visual light bar health system (5 bars)
-- Dynamic enemies: 3 Shadow Guards (-1 light) and 1 Maze Keeper (-2 lights)
-- Responsive canvas-based design for browser play
+- Immersive story with opening narration and title sequence
+- Three unique levels with different correct paths:
+  - Level 1: RIGHT path
+  - Level 2: FORWARD path
+  - Level 3: LEFT path
+- Dynamic light bar system (starts with 3 bars)
+  - Regular shadow guards take 1 light bar
+  - Special shadow guard (SG0) takes 2 light bars
+- Emotional expressions that change based on remaining light bars
+- Portal animation sequence for victory
+- Atmospheric ending sequence with staggered text animation
 
 ---
 
@@ -40,12 +46,12 @@ Website: https://auggie0w0.github.io/shadow-escape/
 
 ## 🕹️ Controls
 
-| Action        | Key         |
-|---------------|-------------|
-| Move Left     | A           |
-| Move Forward  | W           |
-| Move Right    | D           |
-| Confirm       | Enter       |
+| Action        | Key         | Description                    |
+|---------------|-------------|--------------------------------|
+| Move Left     | A           | Choose left path               |
+| Move Forward  | W           | Choose forward path            |
+| Move Right    | D           | Choose right path              |
+| Continue      | Enter       | Progress through text/screens  |
 
 ---
 
@@ -53,11 +59,19 @@ Website: https://auggie0w0.github.io/shadow-escape/
 
 ```
 shadow-escape/
-├── index.html        # Game structure
-├── style.css         # Visual styling
-├── game.js           # Game logic and screen flow
-├── assets/           # Sprites, Luma image, etc.
-└── README.md         # This file
+├── index.html        # Game structure and HTML elements
+├── style.css         # Visual styling and animations
+├── game.js          # Game logic and state management
+├── assets/          # Game assets (images, audio)
+│   ├── audio/       # Background music and sound effects
+│   ├── emotions/    # Luma's emotional expressions
+│   ├── level 1/     # Level 1 assets
+│   ├── level 2/     # Level 2 assets
+│   ├── level 3/     # Level 3 assets
+│   ├── portal/      # Portal animation frames
+│   ├── shadow guards/# Shadow guard images
+│   └── start screen/# Title sequence images
+└── README.md        # Documentation
 ```
 
 ---
@@ -71,13 +85,7 @@ Assets hand-drawn or sourced from:
 
 ---
 
-## 📜 License
-
-This project is for educational and non-commercial use. All rights reserved by the creator.
-
----
-
-## Audio Credits
+## 📜 Audio Credits
 
 ### Sound Effects
 - Outdoor Footsteps: "Outdoor footsteps" by Caitlin_100 (Freesound) via Pixabay

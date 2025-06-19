@@ -36,16 +36,14 @@ const LEVEL_CONFIGS = {
 
 // Expression mapping based on light bars
 const EXPRESSION_MAPPING = {
-    5: 'happy',
-    4: 'worry',
-    3: 'worry',
-    2: 'unhappy',
+    3: 'happy',
+    2: 'worry',
     1: 'unhappy',
     0: null
 };
 
 let currentState = GAME_STATES.PLAYING;
-let lightBars = 5;
+let lightBars = 3;
 let currentLevel = 0;
 let currentAttempt = 0;
 let gameOver = false;
@@ -211,7 +209,7 @@ function runTitleSequence() {
 }
 
 function resetGame() {
-    lightBars = 5;
+    lightBars = 3;
     currentLevel = 0;
     currentAttempt = 0;
     gameOver = false;
@@ -427,11 +425,11 @@ function drawHUD() {
     const startX = 10;
     const startY = 10;
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) { // Draw 3 stars instead of 5
         ctx.fillStyle = i < lightBars ? "yellow" : "gray";
         ctx.beginPath();
         ctx.moveTo(startX + i * (starSize + padding) + starSize / 2, startY);
-        for (let j = 0; j < 5; j++) {
+        for (let j = 0; j < 5; j++) { // Each star is still 5-pointed
             const angle = (j * 4 * Math.PI) / 5 - Math.PI / 2;
             const x = startX + i * (starSize + padding) + starSize / 2 + Math.cos(angle) * starSize / 2;
             const y = startY + starSize / 2 + Math.sin(angle) * starSize / 2;
@@ -828,7 +826,7 @@ async function initGame() {
         currentState = GAME_STATES.INTRO_NARRATION;
         currentNarrationIndex = 0;
         narrationComplete = false;
-        lightBars = 5;
+        lightBars = 3;
         currentLevel = 0;
         currentAttempt = 0;
         gameOver = false;
