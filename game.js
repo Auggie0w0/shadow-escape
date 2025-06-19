@@ -84,18 +84,7 @@ function loadImage(path) {
         };
         img.onerror = (e) => {
             console.error('Failed to load image:', path);
-            // Create a placeholder image (solid color)
-            const placeholder = document.createElement('canvas');
-            placeholder.width = 800;
-            placeholder.height = 600;
-            const pctx = placeholder.getContext('2d');
-            pctx.fillStyle = '#222';
-            pctx.fillRect(0, 0, 800, 600);
-            pctx.fillStyle = '#fff';
-            pctx.font = '20px sans-serif';
-            pctx.fillText('Image not found', 300, 300);
-            imageCache[path] = placeholder;
-            resolve(placeholder);
+            reject(new Error(`Failed to load image: ${path}`));
         };
         img.src = path;
     });
@@ -131,7 +120,8 @@ const assetPaths = {
     expressions: {
         happy: "assets/emotions/happy.png",
         worry: "assets/emotions/worry.png",
-        unhappy: "assets/emotions/unhappy.png"
+        unhappy: "assets/emotions/unhappy.png",
+        smug: "assets/emotions/smug.png"
     },
     fail: "assets/failbg.png",
     stars: [
@@ -139,31 +129,40 @@ const assetPaths = {
         "assets/level 2/2.png",
         "assets/level 3/3.png"
     ],
-    luma: "assets/luma mini.png"  // Add the high-res Luma image
+    luma: "assets/luma mini.png",
+    titleSlides: [
+        "assets/start screen/title1.png",
+        "assets/start screen/title2.png",
+        "assets/start screen/title3.png",
+        "assets/start screen/title4.png",
+        "assets/start screen/title5.png"
+    ]
 };
 
 // Preload images
-Promise.all([
-    ...assetPaths.levels.map(loadImage),
-    ...assetPaths.guards.map(loadImage),
-    ...assetPaths.portal.map(loadImage),
-    loadImage(assetPaths.expressions.happy),
-    loadImage(assetPaths.expressions.worry),
-    loadImage(assetPaths.expressions.unhappy),
-    loadImage(assetPaths.fail),
-    loadImage(assetPaths.luma),
-    ...assetPaths.stars.map(loadImage),
-    ...titleSlides.map(loadImage)
-]).then(() => {
-    console.log("All assets loaded successfully");
-    initGame();
-    updateState(GAME_STATES.INTRO_NARRATION);
-}).catch(error => {
-    console.error("Error loading assets:", error);
-    // Continue anyway to prevent game from not starting
-    initGame();
-    updateState(GAME_STATES.INTRO_NARRATION);
-});
+async function preloadAssets() {
+    const allAssets = [
+        ...assetPaths.levels,
+        ...assetPaths.guards,
+        ...assetPaths.portal,
+        ...Object.values(assetPaths.expressions),
+        assetPaths.fail,
+        ...assetPaths.stars,
+        assetPaths.luma,
+        ...assetPaths.titleSlides
+    ];
+
+    console.log('Starting asset preload...', allAssets);
+    
+    try {
+        await Promise.all(allAssets.map(path => loadImage(path)));
+        console.log("All assets loaded successfully");
+        return true;
+    } catch (error) {
+        console.error("Error loading assets:", error);
+        return false;
+    }
+}
 
 // Game functions
 function startGame() {
@@ -175,21 +174,24 @@ function runTitleSequence() {
     const titleScreen = document.getElementById('title-screen');
     const titleImage = document.getElementById('title-image');
     const startText = document.getElementById('start-text');
-    let currentTitleIndex = 0;
+    currentTitleIndex = 0;
     
     // Show title screen
     titleScreen.style.display = 'flex';
+    startText.style.display = 'none';
     
     // Function to update title image
     const updateTitleImage = () => {
-        if (currentTitleIndex < titleSlides.length) {
-            titleImage.src = titleSlides[currentTitleIndex];
-            
-            // Show start text only on last image
-            if (currentTitleIndex === titleSlides.length - 1) {
-                startText.style.display = 'block';
+        if (currentTitleIndex < assetPaths.titleSlides.length) {
+            const img = imageCache[assetPaths.titleSlides[currentTitleIndex]];
+            if (img) {
+                titleImage.src = assetPaths.titleSlides[currentTitleIndex];
+                
+                // Show start text only on last image
+                if (currentTitleIndex === assetPaths.titleSlides.length - 1) {
+                    startText.style.display = 'block';
+                }
             }
-            
             currentTitleIndex++;
         }
     };
@@ -199,32 +201,12 @@ function runTitleSequence() {
     
     // Set up interval for title slides (1 second per frame)
     const titleInterval = setInterval(() => {
-        if (currentTitleIndex < titleSlides.length) {
+        if (currentTitleIndex < assetPaths.titleSlides.length) {
             updateTitleImage();
         } else {
             clearInterval(titleInterval);
         }
     }, 1000);
-    
-    // Handle click/enter to start
-    const startGame = () => {
-        clearInterval(titleInterval);
-        titleScreen.style.display = 'none';
-        updateState(GAME_STATES.PLAYING);
-    };
-    
-    // Add event listeners
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && currentTitleIndex === titleSlides.length) {
-            startGame();
-        }
-    });
-    
-    titleScreen.addEventListener('click', () => {
-        if (currentTitleIndex === titleSlides.length) {
-            startGame();
-        }
-    });
 }
 
 function resetGame() {
@@ -248,6 +230,77 @@ function resetGame() {
     updateState(GAME_STATES.PLAYING);
 }
 
+// Audio handling
+function playSound(sound) {
+    return new Promise((resolve, reject) => {
+        if (!sound) {
+            resolve();
+            return;
+        }
+        
+        sound.currentTime = 0;
+        
+        const onEnd = () => {
+            sound.removeEventListener('ended', onEnd);
+            resolve();
+        };
+        
+        sound.addEventListener('ended', onEnd);
+        
+        sound.play().catch(error => {
+            console.error('Error playing sound:', error);
+            resolve(); // Resolve anyway to not block game flow
+        });
+    });
+}
+
+async function handleChoice(direction) {
+    if (isInputLocked) return;
+    
+    const currentConfig = LEVEL_CONFIGS[currentLevel];
+    const directionMap = { a: 'LEFT', w: 'FORWARD', d: 'RIGHT' };
+    
+    // Lock input
+    isInputLocked = true;
+    
+    // Play footstep sound and wait for it to finish
+    const footstepSound = document.getElementById('footstep-sound');
+    await playSound(footstepSound);
+    
+    // Update dialogue
+    dialogueText.textContent = `Luma chose ${directionMap[direction]}.`;
+    
+    // Check if choice was correct
+    if (direction !== currentConfig.correctPath) {
+        // Wrong choice - reduce light bars
+        lightBars -= (currentLevel === 2) ? 2 : 1;
+        
+        if (lightBars <= 0) {
+            handleGameOver();
+            return;
+        }
+        
+        // Show shadow guard
+        showGuard(currentLevel);
+    } else {
+        // Correct choice - move to next level after a short delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        showShadowGuard = false; // Ensure shadow guard is hidden
+        currentLevel++;
+        currentAttempt = 0;
+        
+        if (currentLevel >= 3) {
+            if (lightBars > 0) {
+                updateState(GAME_STATES.VICTORY);
+            } else {
+                handleGameOver();
+            }
+        } else {
+            updateLevel();
+        }
+    }
+}
+
 function showGuard(level) {
     console.debug('showGuard called', { level });
 
@@ -262,9 +315,18 @@ function showGuard(level) {
     showShadowGuard = true;
     isInputLocked = true;
     draw();
+    
+    // Show input prompt after a short delay
+    setTimeout(() => {
+        dialogueText.textContent = "Press Enter to continue...";
+    }, 1000);
 }
 
 function updateLevel() {
+    // Ensure shadow guard is hidden during transition
+    showShadowGuard = false;
+    isInputLocked = false;
+    
     // Start fade transition
     fadeTransition(() => {
         bgImage = imageCache[assetPaths.levels[currentLevel]];
@@ -278,17 +340,6 @@ function updateLevel() {
             
             try {
                 levelStar.style.backgroundImage = `url('${starPath}')`;
-                
-                // Verify image loaded
-                const img = new Image();
-                img.onload = () => console.log(`Star image loaded successfully: ${starPath}`);
-                img.onerror = () => {
-                    console.warn(`Star image failed to load: ${starPath}`);
-                    // Fallback to gold circle
-                    levelStar.style.backgroundColor = '#FFD700';
-                    levelStar.style.borderRadius = '50%';
-                };
-                img.src = starPath;
             } catch (e) {
                 console.warn(`Error setting star image: ${e.message}`);
                 // Fallback to gold circle
@@ -306,6 +357,10 @@ function updateLevel() {
 
 function fadeTransition(callback) {
     let alpha = 1;
+    
+    // Ensure shadow guard is hidden during transition
+    showShadowGuard = false;
+    
     const fadeOut = () => {
         alpha -= 0.1;
         if (alpha <= 0) {
@@ -375,84 +430,45 @@ function drawHUD() {
 
 function handleGameOver() {
     updateState(GAME_STATES.GAME_OVER);
-    
-    // Add one-time event listener for retry
-    const handleRetry = (e) => {
-        if (e.key === 'Enter') {
-            document.removeEventListener('keydown', handleRetry);
-            resetGame();
-        }
-    };
-    
-    document.addEventListener('keydown', handleRetry);
-}
-
-function handleChoice(direction) {
-    if (isInputLocked) return;
-    
-    const currentConfig = LEVEL_CONFIGS[currentLevel];
-    const directionMap = { a: 'LEFT', w: 'FORWARD', d: 'RIGHT' };
-    
-    // Lock input
-    isInputLocked = true;
-    
-    // Play footstep sound
-    const footstepSound = document.getElementById('footstep-sound');
-    if (footstepSound) {
-        footstepSound.currentTime = 0;
-        footstepSound.play().catch(console.error);
-    }
-    
-    // Update dialogue
-    dialogueText.textContent = `Luma chose ${directionMap[direction]}.`;
-    
-    // Check if choice was correct
-    if (direction !== currentConfig.correctPath) {
-        // Wrong choice - reduce light bars
-        lightBars -= (currentLevel === 2) ? 2 : 1;
-        
-        if (lightBars <= 0) {
-            handleGameOver();
-            return;
-        }
-        
-        // Show shadow guard
-        showGuard(currentLevel);
-    } else {
-        // Correct choice - move to next level
-        currentLevel++;
-        currentAttempt = 0;
-        
-        if (currentLevel >= 3) {
-            updateState(GAME_STATES.VICTORY);
-        } else {
-            updateLevel();
-        }
-    }
+    bgImage = imageCache[assetPaths.fail];
+    draw();
 }
 
 function startVictorySequence() {
-    let frameIndex = 0;
-    portalAnimationTimer = setInterval(() => {
-        const portalImg = imageCache[assetPaths.portal[frameIndex]];
-        if (portalImg) {
-            bgImage = portalImg;
-        }
-        frameIndex = (frameIndex + 1) % assetPaths.portal.length;
-        draw();
-    }, 200);
-
-    setTimeout(() => {
-        clearInterval(portalAnimationTimer);
-        // Show victory message
-        document.getElementById('victory-message').classList.remove('hidden');
+    // Only show portal animation if player has stars left
+    if (lightBars > 0) {
+        let frameIndex = 0;
+        const victoryMessage = document.getElementById('victory-message');
         
-        // Reset game after delay
+        // Hide shadow guard during victory sequence
+        showShadowGuard = false;
+        isInputLocked = true;
+        
+        // Start portal animation
+        portalAnimationTimer = setInterval(() => {
+            const portalImg = imageCache[assetPaths.portal[frameIndex]];
+            if (portalImg) {
+                bgImage = portalImg;
+                draw();
+            }
+            frameIndex = (frameIndex + 1) % assetPaths.portal.length;
+        }, 200);
+
+        // Show victory message after portal animation
         setTimeout(() => {
-            document.getElementById('victory-message').classList.add('hidden');
-            resetGame();
-        }, 5000);
-    }, assetPaths.portal.length * 200);
+            clearInterval(portalAnimationTimer);
+            victoryMessage.classList.add('show');
+            
+            // Reset game after delay
+            setTimeout(() => {
+                victoryMessage.classList.remove('show');
+                resetGame();
+            }, 5000);
+        }, assetPaths.portal.length * 200);
+    } else {
+        // If no stars left, go to game over
+        handleGameOver();
+    }
 }
 
 function drawScene() {
@@ -539,77 +555,82 @@ function draw() {
     }
 }
 
-// Event listeners
-document.addEventListener("keydown", (e) => {
-    // Handle game over reset first
-    if (currentState === GAME_STATES.GAME_OVER && e.key === 'Enter') {
-        resetGame();
-        return;
-    }
+// Global event listeners
+document.addEventListener('keydown', handleKeyPress);
+document.addEventListener('click', handleClick);
+
+function handleKeyPress(e) {
+    console.log('Key pressed:', e.key, 'Current state:', currentState);
     
-    if (currentState === GAME_STATES.INTRO_NARRATION) {
-        if (e.key === 'Enter') {
-            currentNarrationIndex++;
-            handleNarration();
-        }
-        return;
-    }
-    
-    if (currentState === GAME_STATES.PLAYING) {
-        if (isInputLocked) {
+    switch (currentState) {
+        case GAME_STATES.GAME_OVER:
             if (e.key === 'Enter') {
-                isInputLocked = false;
-                showShadowGuard = false;
-                bgImage = imageCache[assetPaths.levels[currentLevel]];
-                draw(); // redraw scene with guard removed
+                resetGame();
+            }
+            break;
+            
+        case GAME_STATES.INTRO_NARRATION:
+            if (e.key === 'Enter') {
+                currentNarrationIndex++;
+                handleNarration();
+            }
+            break;
+            
+        case GAME_STATES.TITLE_SCREEN:
+            if (e.key === 'Enter' && currentTitleIndex >= assetPaths.titleSlides.length) {
+                startGameFromTitle();
+            }
+            break;
+            
+        case GAME_STATES.PLAYING:
+            if (isInputLocked) {
+                if (e.key === 'Enter' && showShadowGuard) {
+                    // When Enter is pressed while shadow guard is shown
+                    isInputLocked = false;
+                    showShadowGuard = false;
+                    bgImage = imageCache[assetPaths.levels[currentLevel]];
+                    draw();
+                    
+                    // Move to next level after shadow guard disappears
+                    setTimeout(() => {
+                        currentLevel++;
+                        if (currentLevel >= 3) {
+                            if (lightBars > 0) {
+                                updateState(GAME_STATES.VICTORY);
+                            } else {
+                                handleGameOver();
+                            }
+                        } else {
+                            updateLevel();
+                        }
+                    }, 500);
+                }
                 return;
             }
-            return;
-        }
-        
-        let direction = null;
-        if (e.key.toLowerCase() === 'a') direction = 'a';
-        if (e.key.toLowerCase() === 'w') direction = 'w';
-        if (e.key.toLowerCase() === 'd') direction = 'd';
-        
-        if (direction) {
-            handleChoice(direction);
-        }
+            
+            let direction = null;
+            if (e.key.toLowerCase() === 'a') direction = 'a';
+            if (e.key.toLowerCase() === 'w') direction = 'w';
+            if (e.key.toLowerCase() === 'd') direction = 'd';
+            
+            if (direction) {
+                handleChoice(direction);
+            }
+            break;
     }
-});
+}
 
-const titleSlides = [
-    "assets/start screen/title1.png",
-    "assets/start screen/title2.png",
-    "assets/start screen/title3.png",
-    "assets/start screen/title4.png",
-    "assets/start screen/title5.png"
-];
+function handleClick(e) {
+    if (currentState === GAME_STATES.TITLE_SCREEN && currentTitleIndex >= assetPaths.titleSlides.length) {
+        startGameFromTitle();
+    }
+}
 
-const levelBackgrounds = [
-    "assets/level 1/1bg.png",
-    "assets/level 2/2bg.png",
-    "assets/level 3/3bg.png"
-];
-
-const shadowGuards = [
-    "assets/shadow guards/SG1.png", // Level 1
-    "assets/shadow guards/SG2.png", // Level 2
-    "assets/shadow guards/SG3.png", // Level 3
-    "assets/shadow guards/SG0.png"  // Boss
-];
-
-const portalFrames = [
-    "assets/portal/portal1.png",
-    "assets/portal/portal2.png",
-    "assets/portal/portal3.png",
-    "assets/portal/portal4.png",
-    "assets/portal/portal5.png",
-    "assets/portal/portal6.png",
-    "assets/portal/portal7.png"
-];
-
-const failScreen = "assets/failbg.png";
+function startGameFromTitle() {
+    const titleScreen = document.getElementById('title-screen');
+    titleScreen.style.display = 'none';
+    updateState(GAME_STATES.PLAYING);
+}
 
 // Narration state management
 let currentNarrationIndex = 0;
@@ -619,9 +640,11 @@ function handleNarration() {
     const narrationTexts = document.querySelectorAll('.narration-text p');
     const skipText = document.querySelector('.skip-text');
     const canvas = document.getElementById('gameCanvas');
+    const narrationContainer = document.getElementById('narration');
     
     // Hide canvas during narration
     canvas.style.display = 'none';
+    narrationContainer.style.display = 'flex';
     
     // Hide all narration texts
     narrationTexts.forEach(p => {
@@ -630,19 +653,29 @@ function handleNarration() {
         p.style.transform = 'translateY(20px)';
     });
     
-    // Show current narration text
+    // Show current narration text or move to title screen
     if (currentNarrationIndex < narrationTexts.length) {
         const currentText = narrationTexts[currentNarrationIndex];
         currentText.classList.add('current-text');
         currentText.style.opacity = '1';
         currentText.style.transform = 'translateY(0)';
+        
+        // Show skip text
+        if (skipText) {
+            skipText.style.opacity = '1';
+        }
     } else {
         // All narration complete
+        if (skipText) {
+            skipText.style.opacity = '0';
+        }
         narrationContainer.classList.add('fade-out');
+        
+        // Wait for fade out animation
         setTimeout(() => {
             narrationContainer.style.display = 'none';
+            narrationContainer.classList.remove('fade-out');
             updateState(GAME_STATES.TITLE_SCREEN);
-            runTitleSequence();
         }, 1000);
     }
 }
@@ -686,42 +719,13 @@ function updateState(newState) {
     }
 }
 
-// Asset preloading
-function preloadAssets() {
-    const allAssets = [
-        ...assetPaths.levels,
-        ...assetPaths.guards,
-        ...assetPaths.portal,
-        ...Object.values(assetPaths.expressions),
-        assetPaths.fail,
-        ...assetPaths.stars,
-        ...titleSlides
-    ];
-
-    console.log('Starting asset preload...');
-    
-    return Promise.all(allAssets.map(path => {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => {
-                console.log(`Loaded: ${path}`);
-                imageCache[path] = img;
-                resolve(img);
-            };
-            img.onerror = () => {
-                console.error(`Failed to load: ${path}`);
-                reject(new Error(`Failed to load: ${path}`));
-            };
-            img.src = path;
-        });
-    }));
-}
-
 // Initialize game
 async function initGame() {
     try {
-        await preloadAssets();
-        console.log('All assets loaded successfully');
+        const assetsLoaded = await preloadAssets();
+        if (!assetsLoaded) {
+            throw new Error('Failed to load all assets');
+        }
         
         // Initialize game state
         currentState = GAME_STATES.INTRO_NARRATION;
@@ -748,6 +752,7 @@ async function initGame() {
         updateState(GAME_STATES.INTRO_NARRATION);
     } catch (error) {
         console.error('Failed to initialize game:', error);
+        alert('Failed to load game assets. Please refresh the page to try again.');
     }
 }
 

@@ -9,6 +9,7 @@ body {
     height: 100vh;
     font-family: 'Press Start 2P', cursive;
     color: #fff;
+    overflow: hidden;
 }
 
 canvas {
@@ -25,12 +26,13 @@ canvas {
     width: 100%;
     height: 100%;
     background-color: black;
-    display: flex;
+    display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     color: white;
-    z-index: 9999 !important;
+    z-index: 9999;
+    transition: opacity 1s ease;
 }
 
 .narration-text {
@@ -51,7 +53,7 @@ canvas {
 
 .narration-text p.current-text {
     opacity: 1 !important;
-    transform: translateY(0);
+    transform: translateY(0) !important;
     color: white;
 }
 
@@ -60,65 +62,51 @@ canvas {
     bottom: 40px;
     right: 40px;
     font-size: 16px;
-    opacity: 0.7;
+    opacity: 0;
     color: white;
+    transition: opacity 0.5s ease;
 }
 
 /* Fade out animation for narration container */
 .narration-container.fade-out {
     opacity: 0;
-    transition: opacity 1s ease;
     pointer-events: none;
 }
 
-/* Title Sequence Styles */
-.title-sequence {
+/* Title Screen Styles */
+#title-screen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background-color: black;
-    display: flex;
-    flex-direction: column;
+    display: none;
     justify-content: center;
     align-items: center;
-    z-index: 999;
+    flex-direction: column;
+    z-index: 1001;
+}
+
+#title-image {
+    width: 600px;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+#start-text {
+    color: white;
+    font-family: 'Press Start 2P';
+    font-size: 16px;
+    display: none;
     opacity: 0;
-    pointer-events: none;
+    animation: pulse 2s infinite;
 }
 
-.title-text {
-    font-size: 48px;
-    margin: 20px 0;
-    opacity: 0;
-    transform: translateY(20px);
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
-    letter-spacing: 4px;
-}
-
-.title-text.visible {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 1s ease, transform 1s ease;
-}
-
-.title1 { color: #ff6b6b; }
-.title2 { color: #4ecdc4; }
-.title3 { color: #ffe66d; }
-.title4 { color: #95e1d3; }
-
-@keyframes glitch {
-    0% { transform: translate(0); }
-    20% { transform: translate(-2px, 2px); }
-    40% { transform: translate(-2px, -2px); }
-    60% { transform: translate(2px, 2px); }
-    80% { transform: translate(2px, -2px); }
-    100% { transform: translate(0); }
-}
-
-.title-text:hover {
-    animation: glitch 0.3s infinite;
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
 }
 
 /* Dialogue Box Styles */
@@ -161,19 +149,6 @@ canvas {
     z-index: 999;
 }
 
-/* Remove old luma-portrait styles */
-#luma-portrait {
-    position: absolute;
-    bottom: 100px;
-    left: 20px;
-    width: 180px;
-    height: 180px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    z-index: 999;
-}
-
 /* Victory Message Styles */
 #victory-message {
     position: fixed;
@@ -187,6 +162,12 @@ canvas {
     z-index: 1000;
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
     border: 2px solid rgba(255, 255, 255, 0.2);
+    display: none;
+}
+
+#victory-message.show {
+    display: block;
+    animation: fadeIn 0.5s ease;
 }
 
 #victory-message h2 {
@@ -201,10 +182,6 @@ canvas {
     font-size: 18px;
     margin: 10px 0;
     line-height: 1.5;
-}
-
-#victory-message.hidden {
-    display: none;
 }
 
 #level-title {
@@ -222,8 +199,13 @@ canvas {
 }
 
 @keyframes fadeInOut {
-    0% { opacity: 0; }
-    20% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { opacity: 0; }
+    0% { opacity: 0; transform: translate(-50%, -60%); }
+    20% { opacity: 1; transform: translate(-50%, -50%); }
+    80% { opacity: 1; transform: translate(-50%, -50%); }
+    100% { opacity: 0; transform: translate(-50%, -40%); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -45%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
 }
