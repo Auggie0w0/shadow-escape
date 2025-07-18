@@ -1,8 +1,12 @@
-# 🌑 Shadow Escape
+# 🌑 Shadow Escape - Version 0
+
+ADW to move! 
 
 Website: https://auggie0w0.github.io/shadow-escape/
 
 **Shadow Escape** is a web-based, story-driven maze adventure game built using **HTML**, **CSS**, and **JavaScript**. You play as **Luma**, a brave explorer trapped in a shadowy dimension. To escape, you must make the right choices, avoid shadow guards, and survive with your light intact.
+
+Game graphics are drawn by me on Procreate! <3
 
 ---
 
