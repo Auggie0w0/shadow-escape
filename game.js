@@ -97,44 +97,39 @@ let portalAnimationTimer;
 // Asset paths
 const assetPaths = {
     levels: [
-        "assets/level 1/1bg.png",
-        "assets/level 2/2bg.png",
-        "assets/level 3/3bg.png"
+        "assets/1bg.png",
+        "assets/2bg.png",
+        "assets/3bg.png"
     ],
     guards: [
-        "assets/shadow guards/SG0.png",
-        "assets/shadow guards/SG1.png",
-        "assets/shadow guards/SG2.png",
-        "assets/shadow guards/SG3.png"
+        "assets/SG0.png",
+        "assets/SG1.png",
+        "assets/SG2.png",
+        "assets/SG3.png"
     ],
     portal: [
-        "assets/portal/portal1.png",
-        "assets/portal/portal2.png",
-        "assets/portal/portal3.png",
-        "assets/portal/portal4.png",
-        "assets/portal/portal5.png",
-        "assets/portal/portal6.png",
-        "assets/portal/portal7.png"
+        "assets/portal1.png",
+        "assets/portal2.png",
+        "assets/portal3.png",
+        "assets/portal5.png",
+        "assets/portal6.png"
     ],
     expressions: {
-        happy: "assets/emotions/happy.png",
-        worry: "assets/emotions/worry.png",
-        unhappy: "assets/emotions/unhappy.png",
-        smug: "assets/emotions/smug.png"
+        happy: "assets/happy.png",
+        worry: "assets/worry.png",
+        unhappy: "assets/unhappy.png"
     },
     fail: "assets/failbg.png",
     stars: [
-        "assets/level 1/1.png",
-        "assets/level 2/2.png",
-        "assets/level 3/3.png"
+        "assets/2.png"
     ],
     luma: "assets/luma mini.png",
     titleSlides: [
-        "assets/start screen/title1.png",
-        "assets/start screen/title2.png",
-        "assets/start screen/title3.png",
-        "assets/start screen/title4.png",
-        "assets/start screen/title5.png"
+        "assets/title1.png",
+        "assets/title2.png",
+        "assets/title3.png",
+        "assets/title4.png",
+        "assets/title5.png"
     ]
 };
 
@@ -325,7 +320,7 @@ function showGuard(level) {
         shadowGuardImg = imageCache[assetPaths.guards[0]]; // SG0
         imageCache['SG0_shown'] = true; // prevent repeat
     } else {
-        shadowGuardImg = imageCache[`assets/shadow guards/${LEVEL_CONFIGS[level].guardImage}`];
+        shadowGuardImg = imageCache[`assets/${LEVEL_CONFIGS[level].guardImage}`];
     }
 
     showShadowGuard = true;
