@@ -78,7 +78,7 @@ shadow-escape/
 
 ## ✨ Credits
 
-Game by **Yu Lam**  
+Game by **August Lam**  
 Assets hand-drawn or sourced from:
 - [OpenGameArt.org](https://opengameart.org/)
 - [Itch.io Game Assets](https://itch.io/game-assets)
